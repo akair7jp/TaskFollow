@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFollow - 管理者パネル</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* メニューボタン（ドロップダウン）のスタイル */
+        .menu-container {
+            position: relative;
+            display: inline-block;
+        }
+        .menu-btn {
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .menu-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 150px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 100;
+            border-radius: 4px;
+        }
+        .menu-content button {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            width: 100%;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+        }
+        .menu-content button:hover { background-color: #f1f1f1; }
+        .show { display: block; }
+        
+        /* 備考欄のスタイル */
+        .remark-google {
+            color: #4285F4;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+    <h1>管理者パネル</h1>
+    
+    <table border="1" style="width:100%; border-collapse: collapse;">
+        <thead>
+            <tr style="background: #eee;">
+                <th>ログインID</th>
+                <th>メールアドレス</th>
+                <th>電話番号</th>
+                <th>備考</th> <!-- 備考欄の追加 -->
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody id="user-table-body">
+            <!-- JavaScriptで動的に生成 -->
+        </tbody>
+    </table>
+
+    <div class="admin-actions" style="margin-top: 20px;">
+        <button onclick="location.href='todo.html'">戻る</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.x/firebase-app.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.x/firebase-auth.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.x/firebase-firestore.js";
+
+        const firebaseConfig = { /* あなたの設定 */ };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function loadUsers() {
+            const querySnapshot = await getDocs(collection(db, "users"));
+            const tbody = document.getElementById('user-table-body');
+            tbody.innerHTML = '';
+
+            querySnapshot.forEach((doc) => {
+                const userData = doc.data();
+                const tr = document.createElement('tr');
+
+                // Googleユーザーかどうかの判定 (ソース[2]に基づくロジック)
+                const isGoogleUser = userData.providerId === 'google.com';
+                const remarkText = isGoogleUser ? '<span class="remark-google">Googleアカウントユーザー</span>' : '';
+
+                tr.innerHTML = `
+                    <td>${userData.loginId || '-'}</td>
+                    <td>${userData.email || '-'}</td>
+                    <td>${userData.phone || '-'}</td>
+                    <td>${remarkText}</td>
+                    <td>
+                        <div class="menu-container">
+                            <button class="menu-btn" onclick="toggleMenu('${doc.id}')">メニュー ▼</button>
+                            <div id="menu-${doc.id}" class="menu-content">
+                                <button onclick="changePassword('${doc.id}')">PWの変更</button>
+                                <button onclick="deleteAccount('${doc.id}')" style="color: red;">アカウント削除</button>
+                            </div>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // メニューの開閉
+        window.toggleMenu = (id) => {
+            document.getElementById(`menu-${id}`).classList.toggle("show");
+        };
+
+        // 各種アクションの雛形
+        window.changePassword = (id) => {
+            alert("パスワード変更画面へ（またはリセットメール送信機能）");
+        };
+
+        window.deleteAccount = (id) => {
+            if(confirm("本当にこのアカウントを削除しますか？")) {
+                alert("削除処理を実行します");
+            }
+        };
+
+        // 画面外クリックでメニューを閉じる
+        window.onclick = (event) => {
+            if (!event.target.matches('.menu-btn')) {
+                const dropdowns = document.getElementsByClassName("menu-content");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    dropdowns[i].classList.remove('show');
+                }
+            }
+        };
+
+        loadUsers();
+    </script>
+</body>
+</html>
