@@ -5,65 +5,49 @@
     <title>TaskFollow - タスク管理</title>
     <style>
         body { font-family: sans-serif; margin: 0; background: #f0f2f5; }
-        header { background: #333; color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
-        main { padding: 20px; max-width: 800px; margin: auto; }
-        .controls, .tabs { margin-bottom: 20px; display: flex; gap: 10px; }
-        .tabs span { cursor: pointer; padding: 5px 10px; background: #ddd; border-radius: 4px; }
-        #tasks-container { background: white; padding: 20px; border-radius: 8px; min-height: 200px; }
-        button { cursor: pointer; padding: 8px 15px; border-radius: 4px; border: 1px solid #ccc; }
+        header { background: #fff; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; }
+        .user-info { font-weight: bold; }
+        main { padding: 20px; max-width: 900px; margin: auto; }
+        .controls { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tabs { display: flex; justify-content: space-between; background: #e9ecef; padding: 10px; border-radius: 8px; }
+        .tab-group { display: flex; gap: 15px; cursor: pointer; }
+        .task-empty { text-align: center; margin-top: 50px; color: #888; }
+        button { padding: 8px 16px; border-radius: 4px; border: 1px solid #ccc; background: white; cursor: pointer; }
     </style>
 </head>
 <body>
     <header>
-        <span id="user-display">読み込み中...</span>
+        <span class="user-info"><span id="user-name">...</span> さん</span>
         <div>
-            <button onclick="location.href='admin.html'">管理者パネル</button>
             <button id="logout-btn">ログアウト</button>
+            <button>設定</button>
+            <button onclick="location.href='admin.html'">管理者パネル</button>
         </div>
     </header>
     <main>
+        <p>あなたのタスクを整理して、効率的に管理しましょう</p>
         <div class="controls">
-            <button>インポート</button> <button>一括登録</button> <button>新規タスク</button>
+            <button>インポート</button>
+            <button>一括登録</button>
+            <button style="background: #28a745; color: white; border: none;">新規タスク</button>
         </div>
         <div class="tabs">
-            <span>優先度順</span> <span>期限順</span>
-            <div style="margin-left: auto;">
-                <span>リスト</span> <span>カレンダー</span>
-            </div>
+            <div class="tab-group"><span>優先度順</span><span>期限順</span></div>
+            <div class="tab-group"><span>リスト</span><span>カレンダー</span></div>
         </div>
-        <div id="tasks-container">タスクを取得しています...</div>
+        <div id="tasks-container" class="task-empty">タスクが見つかりません</div>
     </main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
-        import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
-
-        const firebaseConfig = { /* index.htmlと同じ内容 */ 
-            apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU",
-            authDomain: "taskfollow-b70ff.firebaseapp.com",
-            projectId: "taskfollow-b70ff",
-            storageBucket: "taskfollow-b70ff.firebasestorage.app",
-            messagingSenderId: "748569597788",
-            appId: "1:748569597788:web:c631b8e9c50dcf63835399",
-            measurementId: "G-XWZBXYJH89"
-        };
-        const app = initializeApp(firebaseConfig);
+        
+        const app = initializeApp({ /* index.htmlと同じConfig */ });
         const auth = getAuth(app);
-        const db = getFirestore(app);
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                document.getElementById('user-display').innerText = `${user.displayName || user.email} さん`;
-                const q = query(collection(db, "tasks"), where("userId", "==", user.uid));
-                onSnapshot(q, (snapshot) => {
-                    const container = document.getElementById('tasks-container');
-                    container.innerHTML = snapshot.empty ? "タスクが見つかりません" : "";
-                    snapshot.forEach(doc => {
-                        const t = doc.data();
-                        container.innerHTML += `<div style="border-bottom:1px solid #eee; padding:10px;">${t.title || '無題'} [${t.priority || '低'}]</div>`;
-                    });
-                });
+                document.getElementById('user-name').innerText = user.displayName || user.email;
             } else { window.location.href = "index.html"; }
         });
 
