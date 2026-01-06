@@ -2,86 +2,49 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskFollow - ログイン</title>
+    <title>TaskFollow - 管理者パネル</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://www.google.com/recaptcha/enterprise.js" async defer></script>
 </head>
 <body>
-    <div id="auth-container">
-        <h1>TaskFollow</h1>
-        <p>あなたのタスクを整理して、効率的に管理しましょう</p>
-        
-        <div class="auth-box">
-            <!-- メール・パスワード入力 -->
-            <input type="email" id="email" placeholder="メールアドレス *" required>
-            <input type="password" id="password" placeholder="パスワード" required>
-            
-            <div style="margin: 15px 0;">
-                <div class="g-recaptcha" data-sitekey="6Lfa3EEsAAAAAN5du12tPAgAdLRS3gve_6onwMjj" data-action="LOGIN"></div>
-            </div>
-
-            <button id="login-btn">ログイン</button>
-            <button id="signup-btn">新規アカウント作成</button>
-
-            <div class="separator">または</div>
-            
-            <!-- フェデレーションIDプロバイダ [2] -->
-            <button id="google-login-btn" style="background-color: #4285F4; color: white;">Googleでログイン</button>
-            <button id="apple-login-btn" style="background-color: #000; color: white;">Apple IDでログイン</button>
-        </div>
-    </div>
+    <h1>管理者パネル</h1>
+    <table border="1" style="width: 100%;">
+        <thead>
+            <tr>
+                <th>ログインID</th><th>メール</th><th>備考</th><th>操作</th>
+            </tr>
+        </thead>
+        <tbody id="user-table-body"></tbody>
+    </table>
+    <button onclick="location.href='todo.html'">戻る</button>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, OAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU",
-            authDomain: "taskfollow-b70ff.firebaseapp.com",
-            projectId: "taskfollow-b70ff",
-            storageBucket: "taskfollow-b70ff.firebasestorage.app",
-            messagingSenderId: "748569597788",
-            appId: "1:748569597788:web:c631b8e9c50dcf63835399",
-            measurementId: "G-XWZBXYJH89"
-        };
-
+        const firebaseConfig = { /* index.htmlと同じ内容 */ };
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        // 1. メール・パスワード認証 [3]
-        document.getElementById('login-btn').onclick = async () => {
-            try {
-                await signInWithEmailAndPassword(auth, email.value, password.value);
-                window.location.href = "todo.html";
-            } catch (error) { alert("ログイン失敗: " + error.message); }
-        };
+        async function loadUsers() {
+            const snapshot = await getDocs(collection(db, "users"));
+            const tbody = document.getElementById('user-table-body');
+            snapshot.forEach(doc => {
+                const u = doc.data();
+                // プロバイダ判定 [2]
+                let remark = "";
+                if (u.providerId === "google.com") remark = "Googleアカウントユーザー";
+                else if (u.providerId === "apple.com") remark = "Apple IDユーザー";
 
-        document.getElementById('signup-btn').onclick = async () => {
-            if (!grecaptcha.enterprise.getResponse()) return alert("reCAPTCHAを完了してください");
-            try {
-                await createUserWithEmailAndPassword(auth, email.value, password.value);
-                window.location.href = "todo.html";
-            } catch (error) { alert("登録失敗: " + error.message); }
-        };
-
-        // 2. Google認証 [2]
-        document.getElementById('google-login-btn').onclick = async () => {
-            const provider = new GoogleAuthProvider();
-            try {
-                await signInWithPopup(auth, provider);
-                window.location.href = "todo.html";
-            } catch (error) { alert("Googleエラー: " + error.message); }
-        };
-
-        // 3. Apple認証 [2]
-        document.getElementById('apple-login-btn').onclick = async () => {
-            const provider = new OAuthProvider('apple.com');
-            try {
-                await signInWithPopup(auth, provider);
-                window.location.href = "todo.html";
-            } catch (error) { alert("Appleエラー: " + error.message); }
-        };
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${u.loginId || '-'}</td>
+                        <td>${u.email}</td>
+                        <td>${remark}</td>
+                        <td><button onclick="alert('メニューボタン')">メニュー ▼</button></td>
+                    </tr>`;
+            });
+        }
+        loadUsers();
     </script>
 </body>
 </html>
