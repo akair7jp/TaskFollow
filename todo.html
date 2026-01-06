@@ -7,62 +7,39 @@
 </head>
 <body>
     <header>
-        <span id="user-display">さん</span>
+        <span id="user-display">読み込み中...</span>
         <button onclick="location.href='admin.html'">管理者パネル</button>
         <button id="logout-btn">ログアウト</button>
     </header>
-
     <main>
-        <div class="controls">
-            <button id="import-btn">インポート</button>
-            <button id="batch-btn">一括登録</button>
-            <button id="new-task-btn">新規タスク</button>
-        </div>
-
-        <!-- ソースに基づく優先度・表示切り替え [2] -->
-        <div class="tabs">
-            <span>優先度順</span> <span>期限順</span>
-            <div class="view-switch">
-                <span>リスト</span> <span>カレンダー</span>
-            </div>
-        </div>
-
-        <div id="tasks-container">タスクを読み込み中...</div>
+        <div id="tasks-container">タスクを同期中...</div>
     </main>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.x/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.x/firebase-auth.js";
-        import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.x/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+        import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-        const firebaseConfig = { /* index.htmlと同じ設定 */ };
+        const firebaseConfig = { /* index.htmlと同じ内容 */ };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // ログイン状態の監視とリアルタイム同期 [3, 8]
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                document.getElementById('user-display').innerText = `${user.displayName || 'ユーザー'} さん`;
-                
-                // 特定のユーザーIDに紐づくタスクのみを取得 [4]
+                document.getElementById('user-display').innerText = `${user.displayName || user.email} さん`;
+                // リアルタイムアップデートの入手 [4]
                 const q = query(collection(db, "tasks"), where("userId", "==", user.uid));
-                
-                // データベースの変更を監視してUIを自動更新 [3]
                 onSnapshot(q, (snapshot) => {
                     const tasks = snapshot.docs.map(doc => doc.data());
-                    renderTasks(tasks); // UI描画ロジックへ
+                    // ここにタスク描画ロジックを挿入
                 });
             } else {
                 window.location.href = "index.html";
             }
         });
 
-        function renderTasks(tasks) {
-            const container = document.getElementById('tasks-container');
-            container.innerHTML = tasks.length ? '' : 'タスクが見つかりません';
-            tasks.forEach(t => { /* リスト描画処理 */ });
-        }
+        document.getElementById('logout-btn').onclick = () => signOut(auth);
     </script>
 </body>
 </html>
