@@ -5,47 +5,63 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TaskFollow - ログイン</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://www.google.com/recaptcha/enterprise.js" async defer></script>
 </head>
 <body>
     <div id="auth-container">
         <h1>TaskFollow</h1>
         <p>あなたのタスクを整理して、効率的に管理しましょう</p>
-        
-        <!-- メール・パスワード認証 [6] -->
-        <input type="email" id="email" placeholder="メールアドレス *" required>
-        <input type="password" id="password" placeholder="パスワード" required>
-        <button id="login-btn">ログイン</button>
-        
-        <div class="separator">または</div>
-        
-        <!-- Google認証の強化 [7] -->
-        <button id="google-login-btn">Googleでログイン/新規登録</button>
-        <button id="signup-link">新規アカウント作成</button>
+        <div class="auth-box">
+            <input type="email" id="email" placeholder="メールアドレス *" required>
+            <input type="password" id="password" placeholder="パスワード" required>
+            <div style="margin: 15px 0;">
+                <div class="g-recaptcha" data-sitekey="6Lfa3EEsAAAAAN5du12tPAgAdLRS3gve_6onwMjj" data-action="LOGIN"></div>
+            </div>
+            <button id="login-btn">ログイン</button>
+            <div class="separator">または</div>
+            <button id="google-login-btn">Googleでログイン/新規登録</button>
+            <button id="signup-btn">新規アカウント作成</button>
+        </div>
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.x/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.x/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
-        // ※Firebaseコンソールで取得した設定をここに貼り付けてください（ソース外情報）
-        const firebaseConfig = { 
-            apiKey: "YOUR_API_KEY", 
-            authDomain: "your-project.firebaseapp.com", 
-            projectId: "your-project-id" 
+        const firebaseConfig = {
+            apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU",
+            authDomain: "taskfollow-b70ff.firebaseapp.com",
+            projectId: "taskfollow-b70ff",
+            storageBucket: "taskfollow-b70ff.firebasestorage.app",
+            messagingSenderId: "748569597788",
+            appId: "1:748569597788:web:c631b8e9c50dcf63835399",
+            measurementId: "G-XWZBXYJH89"
         };
+
         const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        // Googleログイン処理 [8, 9]
+        // Googleログイン
         document.getElementById('google-login-btn').onclick = async () => {
             try {
                 await signInWithPopup(auth, provider);
-                window.location.href = "todo.html"; 
+                window.location.href = "todo.html";
             } catch (error) {
-                console.error("認証エラー:", error);
-                alert("ログインに失敗しました。設定を確認してください。");
+                alert("認証エラー: " + error.message);
             }
+        };
+
+        // 新規登録 (reCAPTCHA確認付き)
+        document.getElementById('signup-btn').onclick = async () => {
+            const response = grecaptcha.enterprise.getResponse();
+            if (!response) return alert("reCAPTCHAを完了してください");
+            try {
+                await createUserWithEmailAndPassword(auth, email.value, password.value);
+                window.location.href = "todo.html";
+            } catch (error) { alert(error.message); }
         };
     </script>
 </body>
