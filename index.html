@@ -6,37 +6,49 @@
     <title>TaskFollow - ログイン</title>
     <script src="https://www.google.com/recaptcha/enterprise.js" async defer></script>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f4f7f6; margin: 0; }
-        #auth-container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-        h1 { color: #333; }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; margin: 5px 0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        #login-btn { background: #28a745; color: white; }
-        #signup-btn { background: #6c757d; color: white; }
-        #google-login-btn { background: #4285F4; color: white; }
-        #apple-login-btn { background: #000; color: white; }
-        .separator { margin: 15px 0; color: #888; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .auth-container { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
+        h1 { margin-bottom: 5px; color: #333; }
+        .subtitle { color: #666; margin-bottom: 30px; font-size: 0.9em; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        #login-btn { background: #007bff; color: white; }
+        #signup-btn { background: white; color: #007bff; border: 1px solid #007bff; }
+        .separator { margin: 20px 0; border-bottom: 1px solid #eee; position: relative; }
+        .separator::before { content: "または"; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: white; padding: 0 10px; color: #888; }
+        #google-btn { background: #4285F4; color: white; }
+        #apple-btn { background: #000; color: white; }
     </style>
 </head>
 <body>
-    <div id="auth-container">
+    <div class="auth-container">
         <h1>TaskFollow</h1>
-        <p>あなたのタスクを整理して、効率的に管理しましょう</p>
-        <input type="email" id="email" placeholder="メールアドレス *" required>
-        <input type="password" id="password" placeholder="パスワード" required>
+        <p class="subtitle">あなたのタスクを整理して、効率的に管理しましょう</p>
+        
+        <!-- ソース [1] に基づく全入力項目 -->
+        <div id="input-fields">
+            <input type="email" id="email" placeholder="メールアドレス *" required>
+            <input type="tel" id="phone" placeholder="電話番号 (忘却用) *">
+            <input type="text" id="loginId" placeholder="ログインID (英数字・記号)">
+            <input type="password" id="password" placeholder="パスワード" required>
+            <input type="password" id="password-confirm" placeholder="パスワード (再確認)" required>
+        </div>
+
         <div style="margin: 15px 0; display: flex; justify-content: center;">
             <div class="g-recaptcha" data-sitekey="6Lfa3EEsAAAAAN5du12tPAgAdLRS3gve_6onwMjj" data-action="LOGIN"></div>
         </div>
+
         <button id="login-btn">ログイン</button>
+        <div class="separator"></div>
         <button id="signup-btn">新規アカウント作成</button>
-        <div class="separator">または</div>
-        <button id="google-login-btn">Googleでログイン</button>
-        <button id="apple-login-btn">Apple IDでログイン</button>
+        <button id="google-btn">Googleでログイン</button>
+        <button id="apple-btn">Apple IDでログイン</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, OAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, OAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU",
@@ -50,29 +62,50 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        const goToTodo = () => window.location.href = "todo.html";
-
-        document.getElementById('login-btn').onclick = async () => {
-            try { await signInWithEmailAndPassword(auth, email.value, password.value); goToTodo(); }
-            catch (e) { alert("エラー: " + e.message); }
-        };
-
+        // 新規登録処理（ソース [1] の項目をFirestoreへ保存）
         document.getElementById('signup-btn').onclick = async () => {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            const passConf = document.getElementById('password-confirm').value;
+            const loginId = document.getElementById('loginId').value;
+            const phone = document.getElementById('phone').value;
+
+            if (pass !== passConf) return alert("パスワードが一致しません");
             if (!grecaptcha.enterprise.getResponse()) return alert("reCAPTCHAを完了してください");
-            try { await createUserWithEmailAndPassword(auth, email.value, password.value); goToTodo(); }
-            catch (e) { alert("登録エラー: " + e.message); }
+
+            try {
+                const res = await createUserWithEmailAndPassword(auth, email, pass);
+                // ユーザー追加情報をFirestoreに保存
+                await setDoc(doc(db, "users", res.user.uid), {
+                    email, loginId, phone, providerId: "password"
+                });
+                window.location.href = "todo.html";
+            } catch (e) { alert("登録エラー: " + e.message); }
         };
 
-        document.getElementById('google-login-btn').onclick = async () => {
-            try { await signInWithPopup(auth, new GoogleAuthProvider()); goToTodo(); }
-            catch (e) { alert("Googleエラー: " + e.message); }
+        // ログイン処理
+        document.getElementById('login-btn').onclick = async () => {
+            try {
+                await signInWithEmailAndPassword(auth, email.value, password.value);
+                window.location.href = "todo.html";
+            } catch (e) { alert("ログイン失敗: " + e.message); }
         };
 
-        document.getElementById('apple-login-btn').onclick = async () => {
-            try { await signInWithPopup(auth, new OAuthProvider('apple.com')); goToTodo(); }
-            catch (e) { alert("Appleエラー: " + e.message); }
+        // ソーシャルログイン
+        const socialLogin = async (provider) => {
+            try {
+                const res = await signInWithPopup(auth, provider);
+                await setDoc(doc(db, "users", res.user.uid), {
+                    email: res.user.email, providerId: provider.providerId
+                }, { merge: true });
+                window.location.href = "todo.html";
+            } catch (e) { alert("認証エラー: " + e.message); }
         };
+
+        document.getElementById('google-btn').onclick = () => socialLogin(new GoogleAuthProvider());
+        document.getElementById('apple-btn').onclick = () => socialLogin(new OAuthProvider('apple.com'));
     </script>
 </body>
 </html>
