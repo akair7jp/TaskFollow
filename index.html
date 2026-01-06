@@ -11,23 +11,30 @@
     <div id="auth-container">
         <h1>TaskFollow</h1>
         <p>あなたのタスクを整理して、効率的に管理しましょう</p>
+        
         <div class="auth-box">
+            <!-- メール・パスワード入力 -->
             <input type="email" id="email" placeholder="メールアドレス *" required>
             <input type="password" id="password" placeholder="パスワード" required>
+            
             <div style="margin: 15px 0;">
                 <div class="g-recaptcha" data-sitekey="6Lfa3EEsAAAAAN5du12tPAgAdLRS3gve_6onwMjj" data-action="LOGIN"></div>
             </div>
+
             <button id="login-btn">ログイン</button>
-            <div class="separator">または</div>
-            <button id="google-login-btn">Googleでログイン/新規登録</button>
             <button id="signup-btn">新規アカウント作成</button>
+
+            <div class="separator">または</div>
+            
+            <!-- フェデレーションIDプロバイダ [2] -->
+            <button id="google-login-btn" style="background-color: #4285F4; color: white;">Googleでログイン</button>
+            <button id="apple-login-btn" style="background-color: #000; color: white;">Apple IDでログイン</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, OAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU",
@@ -40,28 +47,40 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
         const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
 
-        // Googleログイン
-        document.getElementById('google-login-btn').onclick = async () => {
+        // 1. メール・パスワード認証 [3]
+        document.getElementById('login-btn').onclick = async () => {
             try {
-                await signInWithPopup(auth, provider);
+                await signInWithEmailAndPassword(auth, email.value, password.value);
                 window.location.href = "todo.html";
-            } catch (error) {
-                alert("認証エラー: " + error.message);
-            }
+            } catch (error) { alert("ログイン失敗: " + error.message); }
         };
 
-        // 新規登録 (reCAPTCHA確認付き)
         document.getElementById('signup-btn').onclick = async () => {
-            const response = grecaptcha.enterprise.getResponse();
-            if (!response) return alert("reCAPTCHAを完了してください");
+            if (!grecaptcha.enterprise.getResponse()) return alert("reCAPTCHAを完了してください");
             try {
                 await createUserWithEmailAndPassword(auth, email.value, password.value);
                 window.location.href = "todo.html";
-            } catch (error) { alert(error.message); }
+            } catch (error) { alert("登録失敗: " + error.message); }
+        };
+
+        // 2. Google認証 [2]
+        document.getElementById('google-login-btn').onclick = async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+                window.location.href = "todo.html";
+            } catch (error) { alert("Googleエラー: " + error.message); }
+        };
+
+        // 3. Apple認証 [2]
+        document.getElementById('apple-login-btn').onclick = async () => {
+            const provider = new OAuthProvider('apple.com');
+            try {
+                await signInWithPopup(auth, provider);
+                window.location.href = "todo.html";
+            } catch (error) { alert("Appleエラー: " + error.message); }
         };
     </script>
 </body>
