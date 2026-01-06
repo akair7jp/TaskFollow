@@ -3,25 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <title>TaskFollow - 管理者パネル</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #f4f4f4; }
+        .menu-container { position: relative; display: inline-block; }
+        .dropdown { display: none; position: absolute; right: 0; background: white; border: 1px solid #ccc; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 100; }
+        .dropdown button { display: block; width: 100%; padding: 10px; border: none; background: none; text-align: left; cursor: pointer; }
+        .dropdown button:hover { background: #f0f0f0; }
+        .show { display: block; }
+        .remark-tag { font-weight: bold; color: #007bff; }
+    </style>
 </head>
 <body>
     <h1>管理者パネル</h1>
-    <table border="1" style="width: 100%;">
+    <table>
         <thead>
             <tr>
-                <th>ログインID</th><th>メール</th><th>備考</th><th>操作</th>
+                <th>ログインID</th> <th>メールアドレス</th> <th>備考</th> <th>操作</th>
             </tr>
         </thead>
         <tbody id="user-table-body"></tbody>
     </table>
+    <br>
     <button onclick="location.href='todo.html'">戻る</button>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-        const firebaseConfig = { /* index.htmlと同じ内容 */ };
+        const firebaseConfig = { /* 前述と同じ内容 */ 
+            apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU",
+            authDomain: "taskfollow-b70ff.firebaseapp.com",
+            projectId: "taskfollow-b70ff",
+            storageBucket: "taskfollow-b70ff.firebasestorage.app",
+            messagingSenderId: "748569597788",
+            appId: "1:748569597788:web:c631b8e9c50dcf63835399",
+            measurementId: "G-XWZBXYJH89"
+        };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
@@ -30,18 +50,24 @@
             const tbody = document.getElementById('user-table-body');
             snapshot.forEach(doc => {
                 const u = doc.data();
-                // プロバイダ判定 [2]
-                let remark = "";
-                if (u.providerId === "google.com") remark = "Googleアカウントユーザー";
-                else if (u.providerId === "apple.com") remark = "Apple IDユーザー";
-
+                let remark = u.providerId === "google.com" ? "Googleアカウントユーザー" : 
+                             u.providerId === "apple.com" ? "Apple IDユーザー" : "";
+                
                 tbody.innerHTML += `
-                    <tr>
-                        <td>${u.loginId || '-'}</td>
-                        <td>${u.email}</td>
-                        <td>${remark}</td>
-                        <td><button onclick="alert('メニューボタン')">メニュー ▼</button></td>
-                    </tr>`;
+                <tr>
+                    <td>${u.loginId || '-'}</td>
+                    <td>${u.email}</td>
+                    <td class="remark-tag">${remark}</td>
+                    <td>
+                        <div class="menu-container">
+                            <button onclick="this.nextElementSibling.classList.toggle('show')">メニュー ▼</button>
+                            <div class="dropdown">
+                                <button onclick="alert('パスワード変更')">PWの変更</button>
+                                <button onclick="confirm('削除しますか？')" style="color:red">アカウント削除</button>
+                            </div>
+                        </div>
+                    </td>
+                </tr>`;
             });
         }
         loadUsers();
