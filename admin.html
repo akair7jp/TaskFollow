@@ -3,43 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <title>管理者パネル</title>
-    <style>
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background: #f8f9fa; }
-    </style>
 </head>
 <body>
     <h1>管理者パネル</h1>
-    <table>
+    <div style="margin-bottom:20px; display:flex; align-items:center;">
+        <input type="text" id="admin-search" placeholder="ID, メアド, 電話番号を検索...">
+        <button onclick="document.getElementById('admin-search').value=''">×</button>
+    </div>
+
+    <table border="1" style="width:100%">
         <thead>
             <tr>
-                <th>ログインID</th>
-                <th>メールアドレス</th>
-                <th>電話番号</th>
-                <th>操作</th>
+                <th>ログインID</th><th>メールアドレス</th><th>電話番号</th><th>以前のデータ</th><th>操作</th>
             </tr>
         </thead>
-        <tbody id="user-list"></tbody>
+        <tbody id="admin-user-list"></tbody>
     </table>
-    <button onclick="location.href='todo.html'" style="margin-top:20px;">戻る</button>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-        const app = initializeApp({ /* Config */ });
-        const db = getFirestore(app);
+        const db = getFirestore(initializeApp({ /* config */ }));
 
-        async function load() {
-            const snap = await getDocs(collection(db, "users"));
-            const tbody = document.getElementById('user-list');
-            snap.forEach(doc => {
-                const u = doc.data();
-                tbody.innerHTML += `<tr><td>${u.loginId || '-'}</td><td>${u.email}</td><td>${u.phone || '-'}</td><td><button>詳細</button></td></tr>`;
+        onSnapshot(collection(db, "users"), (snap) => {
+            const tbody = document.getElementById('admin-user-list');
+            tbody.innerHTML = "";
+            snap.forEach(d => {
+                const u = d.data();
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${u.loginId}</td>
+                        <td>${u.email}</td>
+                        <td>${u.phone}</td>
+                        <td style="font-size:10px">${u.history || 'なし'}</td>
+                        <td><button onclick="deleteUser('${d.id}')" style="color:red">削除</button></td>
+                    </tr>`;
             });
-        }
-        load();
+        });
+
+        window.deleteUser = async (id) => {
+            if(confirm("ユーザーを削除しますか？")) await deleteDoc(doc(db, "users", id));
+        };
     </script>
 </body>
 </html>
