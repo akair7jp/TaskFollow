@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <title>管理者パネル</title>
     <style>
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background: #f8f9fa; }
-        .google-user { color: #4285F4; font-weight: bold; }
-        .menu-btn { cursor: pointer; color: blue; }
     </style>
 </head>
 <body>
@@ -19,13 +17,12 @@
                 <th>ログインID</th>
                 <th>メールアドレス</th>
                 <th>電話番号</th>
-                <th>備考</th>
                 <th>操作</th>
             </tr>
         </thead>
         <tbody id="user-list"></tbody>
     </table>
-    <button onclick="location.href='todo.html'" style="margin-top: 20px;">戻る</button>
+    <button onclick="location.href='todo.html'" style="margin-top:20px;">戻る</button>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
@@ -34,23 +31,15 @@
         const app = initializeApp({ /* Config */ });
         const db = getFirestore(app);
 
-        async function fetchUsers() {
-            const snapshot = await getDocs(collection(db, "users"));
+        async function load() {
+            const snap = await getDocs(collection(db, "users"));
             const tbody = document.getElementById('user-list');
-            snapshot.forEach(doc => {
+            snap.forEach(doc => {
                 const u = doc.data();
-                const isGoogle = u.providerId === 'google.com';
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${u.loginId || '-'}</td>
-                        <td>${u.email}</td>
-                        <td>${u.phone || '-'}</td>
-                        <td class="${isGoogle ? 'google-user' : ''}">${isGoogle ? 'Googleアカウントユーザー' : ''}</td>
-                        <td class="menu-btn">メニュー ▼</td>
-                    </tr>`;
+                tbody.innerHTML += `<tr><td>${u.loginId || '-'}</td><td>${u.email}</td><td>${u.phone || '-'}</td><td><button>詳細</button></td></tr>`;
             });
         }
-        fetchUsers();
+        load();
     </script>
 </body>
 </html>
