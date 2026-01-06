@@ -4,70 +4,73 @@
     <meta charset="UTF-8">
     <title>TaskFollow - タスク管理</title>
     <style>
-        body { font-family: sans-serif; margin: 0; background: #f0f2f5; }
-        header { background: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; }
-        .user-area { font-size: 14px; }
-        main { padding: 20px; max-width: 800px; margin: auto; }
-        .controls { display: flex; gap: 10px; margin: 20px 0; }
-        .tabs { display: flex; justify-content: space-between; background: #e9ecef; padding: 10px; border-radius: 5px; }
-        button { cursor: pointer; padding: 8px 15px; border-radius: 4px; border: 1px solid #ccc; background: white; }
+        .dropdown { position: relative; display: inline-block; cursor: pointer; }
+        .dropdown-content { display: none; position: absolute; background: white; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 10; min-width: 150px; }
+        .dropdown:hover .dropdown-content { display: block; }
+        .task-card { border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 8px; }
+        .status-btn { padding: 4px 8px; font-size: 12px; }
+        .deadline-none { color: #888; }
     </style>
 </head>
 <body>
-    <header>
-        <div class="user-area">
-            <span id="user-name">...</span> さん
-            <br><small>ログインID: <span id="display-login-id">-</span></small>
+    <header style="display:flex; justify-content:space-between; padding:10px; background:#eee;">
+        <div class="dropdown">
+            <span id="user-display">ユーザー名</span>さん ▼
+            <div class="dropdown-content">
+                <button onclick="changeInfo('email')">メールアドレス変更</button>
+                <button onclick="changeInfo('pw')">パスワード変更</button>
+                <button onclick="changeInfo('phone')">電話番号変更</button>
+                <button id="logout-btn">ログアウト</button>
+            </div>
         </div>
         <div>
-            <button id="logout-btn">ログアウト</button>
-            <button>設定</button>
             <button onclick="location.href='admin.html'">管理者パネル</button>
         </div>
     </header>
-    <main>
-        <p>あなたのタスクを整理して、効率的に管理しましょう</p>
+
+    <main style="padding:20px;">
+        <div class="stats">
+            📊 合計 | 📝 未着手 | 🚧 進行中 | ✅ 完了
+        </div>
         <div class="controls">
-            <button>インポート</button>
-            <button>一括登録</button>
-            <button style="background: #28a745; color: white; border: none;">新規タスク</button>
+            <button id="add-task-btn">➕ 新規タスク</button>
+            <button>📅 カレンダー表示</button>
         </div>
-        <div class="tabs">
-            <div><span>優先度順</span> | <span>期限順</span></div>
-            <div><span>リスト</span> | <span>カレンダー</span></div>
-        </div>
-        <div id="tasks-container" style="margin-top:20px; text-align:center; color:#888;">
-            タスクが見つかりません
-        </div>
+
+        <!-- タスク一覧 -->
+        <div id="task-list"></div>
     </main>
+
+    <!-- タスク作成モーダル -->
+    <div id="task-modal" class="hidden">
+        <input type="checkbox" id="has-deadline" checked> 期限を設ける
+        <input type="text" id="smart-date" placeholder="スマート入力 (MMDD)">
+        <input type="date" id="os-date">
+        <button id="save-task">保存</button>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
-
-        const app = initializeApp({ /* Configはindex.htmlと同じ */ 
-            apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU",
-            authDomain: "taskfollow-b70ff.firebaseapp.com",
-            projectId: "taskfollow-b70ff",
-            storageBucket: "taskfollow-b70ff.firebasestorage.app",
-            messagingSenderId: "748569597788",
-            appId: "1:748569597788:web:c631b8e9c50dcf63835399"
-        });
+        
+        const app = initializeApp({ /* config */ });
         const auth = getAuth(app);
-        const db = getFirestore(app);
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                document.getElementById('user-name').innerText = user.email;
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if (userDoc.exists()) {
-                    document.getElementById('display-login-id').innerText = userDoc.data().loginId || "-";
-                }
-            } else { window.location.href = "index.html"; }
+        onAuthStateChanged(auth, (user) => {
+            if (!user) window.location.href = "index.html"; // ログアウト時戻る
+            document.getElementById('user-display').innerText = user.displayName || user.email.split('@');
         });
 
         document.getElementById('logout-btn').onclick = () => signOut(auth);
+
+        // スマート日付補完ロジック
+        document.getElementById('smart-date').oninput = (e) => {
+            const val = e.target.value;
+            if(val.length === 4) {
+                const date = `2025-${val.substring(0,2)}-${val.substring(2,4)}`;
+                document.getElementById('os-date').value = date;
+            }
+        };
     </script>
 </body>
 </html>
