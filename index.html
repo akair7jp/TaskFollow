@@ -4,32 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TaskFollow - ログイン</title>
-    <link rel="stylesheet" href="style.css">
     <script src="https://www.google.com/recaptcha/enterprise.js" async defer></script>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f4f7f6; margin: 0; }
+        #auth-container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        h1 { color: #333; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; margin: 5px 0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        #login-btn { background: #28a745; color: white; }
+        #signup-btn { background: #6c757d; color: white; }
+        #google-login-btn { background: #4285F4; color: white; }
+        #apple-login-btn { background: #000; color: white; }
+        .separator { margin: 15px 0; color: #888; }
+    </style>
 </head>
 <body>
     <div id="auth-container">
         <h1>TaskFollow</h1>
         <p>あなたのタスクを整理して、効率的に管理しましょう</p>
-        
-        <div class="auth-box">
-            <!-- メール・パスワード入力 -->
-            <input type="email" id="email" placeholder="メールアドレス *" required>
-            <input type="password" id="password" placeholder="パスワード" required>
-            
-            <div style="margin: 15px 0;">
-                <div class="g-recaptcha" data-sitekey="6Lfa3EEsAAAAAN5du12tPAgAdLRS3gve_6onwMjj" data-action="LOGIN"></div>
-            </div>
-
-            <button id="login-btn">ログイン</button>
-            <button id="signup-btn">新規アカウント作成</button>
-
-            <div class="separator">または</div>
-            
-            <!-- フェデレーションIDプロバイダ [2] -->
-            <button id="google-login-btn" style="background-color: #4285F4; color: white;">Googleでログイン</button>
-            <button id="apple-login-btn" style="background-color: #000; color: white;">Apple IDでログイン</button>
+        <input type="email" id="email" placeholder="メールアドレス *" required>
+        <input type="password" id="password" placeholder="パスワード" required>
+        <div style="margin: 15px 0; display: flex; justify-content: center;">
+            <div class="g-recaptcha" data-sitekey="6Lfa3EEsAAAAAN5du12tPAgAdLRS3gve_6onwMjj" data-action="LOGIN"></div>
         </div>
+        <button id="login-btn">ログイン</button>
+        <button id="signup-btn">新規アカウント作成</button>
+        <div class="separator">または</div>
+        <button id="google-login-btn">Googleでログイン</button>
+        <button id="apple-login-btn">Apple IDでログイン</button>
     </div>
 
     <script type="module">
@@ -49,38 +51,27 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
-        // 1. メール・パスワード認証 [3]
+        const goToTodo = () => window.location.href = "todo.html";
+
         document.getElementById('login-btn').onclick = async () => {
-            try {
-                await signInWithEmailAndPassword(auth, email.value, password.value);
-                window.location.href = "todo.html";
-            } catch (error) { alert("ログイン失敗: " + error.message); }
+            try { await signInWithEmailAndPassword(auth, email.value, password.value); goToTodo(); }
+            catch (e) { alert("エラー: " + e.message); }
         };
 
         document.getElementById('signup-btn').onclick = async () => {
             if (!grecaptcha.enterprise.getResponse()) return alert("reCAPTCHAを完了してください");
-            try {
-                await createUserWithEmailAndPassword(auth, email.value, password.value);
-                window.location.href = "todo.html";
-            } catch (error) { alert("登録失敗: " + error.message); }
+            try { await createUserWithEmailAndPassword(auth, email.value, password.value); goToTodo(); }
+            catch (e) { alert("登録エラー: " + e.message); }
         };
 
-        // 2. Google認証 [2]
         document.getElementById('google-login-btn').onclick = async () => {
-            const provider = new GoogleAuthProvider();
-            try {
-                await signInWithPopup(auth, provider);
-                window.location.href = "todo.html";
-            } catch (error) { alert("Googleエラー: " + error.message); }
+            try { await signInWithPopup(auth, new GoogleAuthProvider()); goToTodo(); }
+            catch (e) { alert("Googleエラー: " + e.message); }
         };
 
-        // 3. Apple認証 [2]
         document.getElementById('apple-login-btn').onclick = async () => {
-            const provider = new OAuthProvider('apple.com');
-            try {
-                await signInWithPopup(auth, provider);
-                window.location.href = "todo.html";
-            } catch (error) { alert("Appleエラー: " + error.message); }
+            try { await signInWithPopup(auth, new OAuthProvider('apple.com')); goToTodo(); }
+            catch (e) { alert("Appleエラー: " + e.message); }
         };
     </script>
 </body>
