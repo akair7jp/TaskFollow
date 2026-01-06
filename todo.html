@@ -5,19 +5,20 @@
     <title>TaskFollow - タスク管理</title>
     <style>
         body { font-family: sans-serif; margin: 0; background: #f0f2f5; }
-        header { background: #fff; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; }
-        .user-info { font-weight: bold; }
-        main { padding: 20px; max-width: 900px; margin: auto; }
-        .controls { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tabs { display: flex; justify-content: space-between; background: #e9ecef; padding: 10px; border-radius: 8px; }
-        .tab-group { display: flex; gap: 15px; cursor: pointer; }
-        .task-empty { text-align: center; margin-top: 50px; color: #888; }
-        button { padding: 8px 16px; border-radius: 4px; border: 1px solid #ccc; background: white; cursor: pointer; }
+        header { background: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; }
+        .user-area { font-size: 14px; }
+        main { padding: 20px; max-width: 800px; margin: auto; }
+        .controls { display: flex; gap: 10px; margin: 20px 0; }
+        .tabs { display: flex; justify-content: space-between; background: #e9ecef; padding: 10px; border-radius: 5px; }
+        button { cursor: pointer; padding: 8px 15px; border-radius: 4px; border: 1px solid #ccc; background: white; }
     </style>
 </head>
 <body>
     <header>
-        <span class="user-info"><span id="user-name">...</span> さん</span>
+        <div class="user-area">
+            <span id="user-name">...</span> さん
+            <br><small>ログインID: <span id="display-login-id">-</span></small>
+        </div>
         <div>
             <button id="logout-btn">ログアウト</button>
             <button>設定</button>
@@ -32,22 +33,37 @@
             <button style="background: #28a745; color: white; border: none;">新規タスク</button>
         </div>
         <div class="tabs">
-            <div class="tab-group"><span>優先度順</span><span>期限順</span></div>
-            <div class="tab-group"><span>リスト</span><span>カレンダー</span></div>
+            <div><span>優先度順</span> | <span>期限順</span></div>
+            <div><span>リスト</span> | <span>カレンダー</span></div>
         </div>
-        <div id="tasks-container" class="task-empty">タスクが見つかりません</div>
+        <div id="tasks-container" style="margin-top:20px; text-align:center; color:#888;">
+            タスクが見つかりません
+        </div>
     </main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
-        
-        const app = initializeApp({ /* index.htmlと同じConfig */ });
-        const auth = getAuth(app);
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-        onAuthStateChanged(auth, (user) => {
+        const app = initializeApp({ /* Configはindex.htmlと同じ */ 
+            apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU",
+            authDomain: "taskfollow-b70ff.firebaseapp.com",
+            projectId: "taskfollow-b70ff",
+            storageBucket: "taskfollow-b70ff.firebasestorage.app",
+            messagingSenderId: "748569597788",
+            appId: "1:748569597788:web:c631b8e9c50dcf63835399"
+        });
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                document.getElementById('user-name').innerText = user.displayName || user.email;
+                document.getElementById('user-name').innerText = user.email;
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    document.getElementById('display-login-id').innerText = userDoc.data().loginId || "-";
+                }
             } else { window.location.href = "index.html"; }
         });
 
