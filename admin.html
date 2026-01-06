@@ -4,53 +4,57 @@
     <meta charset="UTF-8">
     <title>管理者パネル - TaskFollow</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; }
-        .search-box { margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-        table { width: 100%; border-collapse: collapse; }
+        body { font-family: sans-serif; padding: 20px; background: #fafafa; }
+        .search-area { margin-bottom: 20px; display:flex; align-items:center; gap:10px; }
+        table { width: 100%; border-collapse: collapse; background: white; }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background: #f8f9fa; }
+        th { background: #f4f4f4; }
         .history { font-size: 11px; color: #888; }
     </style>
 </head>
 <body>
-    <h1>管理者パネル</h1>
-    <div class="search-box">
-        <input type="text" id="admin-search" placeholder="メアド、電話、IDを検索..." style="width:300px; padding:10px;">
-        <button onclick="document.getElementById('admin-search').value=''" style="padding:10px;">×</button>
+    <h1>管理者パネル 🔐</h1>
+    <div class="search-area">
+        <input type="text" id="a-search" placeholder="メール、電話、IDを検索..." style="width:300px; padding:10px;">
+        <button onclick="document.getElementById('a-search').value=''" style="padding:10px; cursor:pointer;">×</button>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th>ログインID</th><th>メールアドレス</th><th>電話番号</th><th>変更前データ</th><th>操作</th>
+                <th>ログインID</th><th>メールアドレス</th><th>電話番号</th><th>以前のデータ</th><th>操作</th>
             </tr>
         </thead>
-        <tbody id="user-list"></tbody>
+        <tbody id="user-rows"></tbody>
     </table>
-    <button onclick="location.href='todo.html'" style="margin-top:20px; padding:10px 20px;">戻る</button>
+    <button onclick="location.href='todo.html'" style="margin-top:20px; padding:10px 20px; cursor:pointer;">戻る</button>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-        const db = getFirestore(initializeApp({ apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff" }));
+        const db = getFirestore(initializeApp({ 
+            apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU",
+            authDomain: "taskfollow-b70ff.firebaseapp.com",
+            projectId: "taskfollow-b70ff"
+        }));
 
         onSnapshot(collection(db, "users"), (snap) => {
-            const tbody = document.getElementById('user-list');
+            const tbody = document.getElementById('user-rows');
             tbody.innerHTML = "";
             snap.forEach(d => {
                 const u = d.data();
                 tbody.innerHTML += `
                     <tr>
                         <td>${u.loginId}</td><td>${u.email}</td><td>${u.phone || '-'}</td>
-                        <td class="history">${JSON.stringify(u.prevData)}</td>
-                        <td><button onclick="delUser('${d.id}')" style="color:red; border:none; background:none; cursor:pointer;">削除</button></td>
+                        <td class="history">${u.prevData ? JSON.stringify(u.prevData) : 'なし'}</td>
+                        <td><button onclick="deleteUser('${d.id}')" style="color:red; border:none; background:none; cursor:pointer;">削除</button></td>
                     </tr>`;
             });
         });
 
-        window.delUser = async (id) => {
-            if(confirm("ユーザーを削除しますか？")) await deleteDoc(doc(db, "users", id));
+        window.deleteUser = async (id) => {
+            if(confirm("このユーザーを完全に削除しますか？")) await deleteDoc(doc(db, "users", id));
         };
     </script>
 </body>
