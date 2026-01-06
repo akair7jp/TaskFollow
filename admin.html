@@ -3,143 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskFollow - 管理者パネル</title>
+    <title>TaskFollow - ログイン</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        /* メニューボタン（ドロップダウン）のスタイル */
-        .menu-container {
-            position: relative;
-            display: inline-block;
-        }
-        .menu-btn {
-            background: #f0f0f0;
-            border: 1px solid #ccc;
-            padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        .menu-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            background-color: white;
-            min-width: 150px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 100;
-            border-radius: 4px;
-        }
-        .menu-content button {
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-            width: 100%;
-            border: none;
-            background: none;
-            text-align: left;
-            cursor: pointer;
-        }
-        .menu-content button:hover { background-color: #f1f1f1; }
-        .show { display: block; }
-        
-        /* 備考欄のスタイル */
-        .remark-google {
-            color: #4285F4;
-            font-weight: bold;
-            font-size: 0.85em;
-        }
-    </style>
+    <script src="https://www.google.com/recaptcha/enterprise.js" async defer></script>
 </head>
 <body>
-    <h1>管理者パネル</h1>
-    
-    <table border="1" style="width:100%; border-collapse: collapse;">
-        <thead>
-            <tr style="background: #eee;">
-                <th>ログインID</th>
-                <th>メールアドレス</th>
-                <th>電話番号</th>
-                <th>備考</th> <!-- 備考欄の追加 -->
-                <th>操作</th>
-            </tr>
-        </thead>
-        <tbody id="user-table-body">
-            <!-- JavaScriptで動的に生成 -->
-        </tbody>
-    </table>
+    <div id="auth-container">
+        <h1>TaskFollow</h1>
+        <p>あなたのタスクを整理して、効率的に管理しましょう</p>
+        
+        <div class="auth-box">
+            <!-- メール・パスワード入力 -->
+            <input type="email" id="email" placeholder="メールアドレス *" required>
+            <input type="password" id="password" placeholder="パスワード" required>
+            
+            <div style="margin: 15px 0;">
+                <div class="g-recaptcha" data-sitekey="6Lfa3EEsAAAAAN5du12tPAgAdLRS3gve_6onwMjj" data-action="LOGIN"></div>
+            </div>
 
-    <div class="admin-actions" style="margin-top: 20px;">
-        <button onclick="location.href='todo.html'">戻る</button>
+            <button id="login-btn">ログイン</button>
+            <button id="signup-btn">新規アカウント作成</button>
+
+            <div class="separator">または</div>
+            
+            <!-- フェデレーションIDプロバイダ [2] -->
+            <button id="google-login-btn" style="background-color: #4285F4; color: white;">Googleでログイン</button>
+            <button id="apple-login-btn" style="background-color: #000; color: white;">Apple IDでログイン</button>
+        </div>
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.x/firebase-app.js";
-        import { getAuth } from "https://www.gstatic.com/firebasejs/10.x/firebase-auth.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.x/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, OAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
-        const firebaseConfig = { /* あなたの設定 */ };
+        const firebaseConfig = {
+            apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU",
+            authDomain: "taskfollow-b70ff.firebaseapp.com",
+            projectId: "taskfollow-b70ff",
+            storageBucket: "taskfollow-b70ff.firebasestorage.app",
+            messagingSenderId: "748569597788",
+            appId: "1:748569597788:web:c631b8e9c50dcf63835399",
+            measurementId: "G-XWZBXYJH89"
+        };
+
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        const auth = getAuth(app);
 
-        async function loadUsers() {
-            const querySnapshot = await getDocs(collection(db, "users"));
-            const tbody = document.getElementById('user-table-body');
-            tbody.innerHTML = '';
-
-            querySnapshot.forEach((doc) => {
-                const userData = doc.data();
-                const tr = document.createElement('tr');
-
-                // Googleユーザーかどうかの判定 (ソース[2]に基づくロジック)
-                const isGoogleUser = userData.providerId === 'google.com';
-                const remarkText = isGoogleUser ? '<span class="remark-google">Googleアカウントユーザー</span>' : '';
-
-                tr.innerHTML = `
-                    <td>${userData.loginId || '-'}</td>
-                    <td>${userData.email || '-'}</td>
-                    <td>${userData.phone || '-'}</td>
-                    <td>${remarkText}</td>
-                    <td>
-                        <div class="menu-container">
-                            <button class="menu-btn" onclick="toggleMenu('${doc.id}')">メニュー ▼</button>
-                            <div id="menu-${doc.id}" class="menu-content">
-                                <button onclick="changePassword('${doc.id}')">PWの変更</button>
-                                <button onclick="deleteAccount('${doc.id}')" style="color: red;">アカウント削除</button>
-                            </div>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // メニューの開閉
-        window.toggleMenu = (id) => {
-            document.getElementById(`menu-${id}`).classList.toggle("show");
+        // 1. メール・パスワード認証 [3]
+        document.getElementById('login-btn').onclick = async () => {
+            try {
+                await signInWithEmailAndPassword(auth, email.value, password.value);
+                window.location.href = "todo.html";
+            } catch (error) { alert("ログイン失敗: " + error.message); }
         };
 
-        // 各種アクションの雛形
-        window.changePassword = (id) => {
-            alert("パスワード変更画面へ（またはリセットメール送信機能）");
+        document.getElementById('signup-btn').onclick = async () => {
+            if (!grecaptcha.enterprise.getResponse()) return alert("reCAPTCHAを完了してください");
+            try {
+                await createUserWithEmailAndPassword(auth, email.value, password.value);
+                window.location.href = "todo.html";
+            } catch (error) { alert("登録失敗: " + error.message); }
         };
 
-        window.deleteAccount = (id) => {
-            if(confirm("本当にこのアカウントを削除しますか？")) {
-                alert("削除処理を実行します");
-            }
+        // 2. Google認証 [2]
+        document.getElementById('google-login-btn').onclick = async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+                window.location.href = "todo.html";
+            } catch (error) { alert("Googleエラー: " + error.message); }
         };
 
-        // 画面外クリックでメニューを閉じる
-        window.onclick = (event) => {
-            if (!event.target.matches('.menu-btn')) {
-                const dropdowns = document.getElementsByClassName("menu-content");
-                for (let i = 0; i < dropdowns.length; i++) {
-                    dropdowns[i].classList.remove('show');
-                }
-            }
+        // 3. Apple認証 [2]
+        document.getElementById('apple-login-btn').onclick = async () => {
+            const provider = new OAuthProvider('apple.com');
+            try {
+                await signInWithPopup(auth, provider);
+                window.location.href = "todo.html";
+            } catch (error) { alert("Appleエラー: " + error.message); }
         };
-
-        loadUsers();
     </script>
 </body>
 </html>
