@@ -2,68 +2,50 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TaskFollow - タスク管理</title>
-    <script src="https://www.google.com/recaptcha/enterprise.js" async defer></script>
     <style>
-        body { font-family: sans-serif; background: #f8f9fc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .auth-card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 4px 30px rgba(0,0,0,0.05); width: 100%; max-width: 400px; text-align: center; }
+        body { font-family: sans-serif; background: #f5f7ff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); width: 100%; max-width: 400px; text-align: center; }
         h1 { color: #5b50f2; font-size: 32px; margin: 0; }
-        .subtitle { color: #888; font-size: 13px; margin: 10px 0 30px; }
-        label { display: block; text-align: left; font-size: 13px; margin-bottom: 5px; font-weight: bold; }
+        .sub { font-size: 13px; color: #888; margin: 10px 0 30px; }
+        label { display: block; text-align: left; font-size: 13px; font-weight: bold; margin-bottom: 5px; }
         input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #eee; border-radius: 8px; background: #fafafa; box-sizing: border-box; }
-        .btn-main { background: #5b50f2; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
-        .separator { display: flex; align-items: center; margin: 20px 0; color: #ccc; font-size: 12px; }
-        .separator::before, .separator::after { content: ""; flex: 1; height: 1px; background: #eee; }
-        .separator span { padding: 0 10px; }
-        .btn-sns { background: white; border: 1px solid #eee; padding: 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; margin-bottom: 10px; font-size: 14px; }
-        .toggle-link { color: #888; font-size: 13px; margin-top: 20px; cursor: pointer; display: block; }
-        .hidden { display: none; }
+        button { background: #5b50f2; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .sep { color: #ccc; margin: 20px 0; font-size: 12px; white-space: pre; }
+        .g-btn { background: white; border: 1px solid #eee; padding: 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; font-size: 14px; color: #333; }
+        .link { color: #888; font-size: 13px; margin-top: 20px; display: block; text-decoration: none; }
     </style>
 </head>
 <body>
-    <div class="auth-card">
+    <div class="card">
         <h1>TaskFollow</h1>
-        <p class="subtitle">あなたのタスクを整理して、効率的に管理しましょう</p>
+        <p class="sub">あなたのタスクを整理して、効率的に管理しましょう</p>
 
-        <div id="login-view">
-            <label>ログインID (英数字・記号)</label>
-            <input type="text" id="l-id">
-            <label>パスワード</label>
-            <input type="password" id="l-pw">
-            <button class="btn-main" id="login-btn">ログイン</button>
-            <div class="separator"><span>または</span></div>
-            <button class="btn-sns" id="g-login">Google でログイン</button>
-            <button class="btn-sns" id="a-login" style="background:black; color:white;">Apple ID でログイン</button>
-            <span class="toggle-link" onclick="toggleView(false)">新規アカウント作成</span>
-        </div>
+        <label>ログインID (英数字・記号)</label>
+        <input type="text" id="l-id">
+        <label>パスワード</label>
+        <input type="password" id="l-pw">
 
-        <div id="signup-view" class="hidden">
-            <input type="email" id="s-email" placeholder="メールアドレス *">
-            <input type="tel" id="s-phone" placeholder="電話番号 (忘却用) *">
-            <input type="text" id="s-id" placeholder="ログインID (英数字・記号)">
-            <input type="password" id="s-pw" placeholder="パスワード">
-            <input type="password" id="s-pw-conf" placeholder="パスワード (再確認)">
-            <div class="g-recaptcha" data-sitekey="6Lfa3EEsAAAAAN5du12tPAgAdLRS3gve_6onwMjj" data-action="LOGIN"></div>
-            <button class="btn-main" id="signup-btn" style="margin-top:15px;">アカウント作成</button>
-            <span class="toggle-link" onclick="toggleView(true)">ログインへ戻る</span>
-        </div>
+        <button id="login-btn">ログイン</button>
+
+        <div class="sep">------------------------------<br>または<br>------------------------------</div>
+
+        <button class="g-btn" id="g-login">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Google でログイン
+        </button>
+
+        <a href="signup.html" class="link">新規アカウント作成</a>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, OAuthProvider } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDocs, collection, query, where } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff", storageBucket: "taskfollow-b70ff.firebasestorage.app", messagingSenderId: "748569597788", appId: "1:748569597788:web:c631b8e9c50dcf63835399" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-
-        window.toggleView = (isLogin) => {
-            document.getElementById('login-view').classList.toggle('hidden', !isLogin);
-            document.getElementById('signup-view').classList.toggle('hidden', isLogin);
-        };
 
         document.getElementById('login-btn').onclick = async () => {
             const id = document.getElementById('l-id').value;
@@ -75,15 +57,15 @@
             if (snap.empty) return alert("ユーザーが見つかりません");
             try {
                 await signInWithEmailAndPassword(auth, snap.docs.data().email, pw);
-                window.location.replace("todo.html");
-            } catch (e) { alert("エラー: " + e.message); }
+                window.location.href = "todo.html";
+            } catch (e) { alert("ログイン不可"); }
         };
 
         document.getElementById('g-login').onclick = async () => {
             const res = await signInWithPopup(auth, new GoogleAuthProvider());
             const loginId = res.user.email.split('@');
             await setDoc(doc(db, "users", res.user.uid), { email: res.user.email, loginId }, { merge: true });
-            window.location.replace("todo.html");
+            window.location.href = "todo.html";
         };
     </script>
 </body>
