@@ -2,63 +2,56 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TaskFollow - ログイン</title>
     <style>
-        body { font-family: sans-serif; background: #f8f9fc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); width: 380px; text-align: center; }
-        h1 { color: #5b50f2; font-size: 32px; margin: 0; font-weight: bold; }
+        :root { --p: #5b50f2; --bg: #f8f9fc; }
+        body { font-family: sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); width: 100%; max-width: 380px; text-align: center; }
+        h1 { color: var(--p); font-size: 32px; margin: 0; }
         .sub { font-size: 13px; color: #888; margin: 10px 0 30px; }
         label { display: block; text-align: left; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #555; }
         input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #eee; border-radius: 8px; background: #fafafa; box-sizing: border-box; }
-        .btn-main { background: #5b50f2; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
-        .sep { color: #ccc; margin: 20px 0; font-size: 12px; white-space: pre; }
+        .btn-main { background: var(--p); color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .sep { color: #ccc; margin: 20px 0; font-size: 12px; display: flex; align-items: center; gap: 10px; }
+        .sep::before, .sep::after { content: ""; flex: 1; height: 1px; background: #eee; }
         .g-btn { background: white; border: 1px solid #eee; padding: 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; font-size: 14px; text-decoration: none; color: #333; }
-        .link { color: #888; font-size: 13px; margin-top: 20px; display: block; text-decoration: none; }
     </style>
 </head>
 <body>
     <div class="card">
         <h1>TaskFollow</h1>
         <p class="sub">あなたのタスクを整理して、効率的に管理しましょう</p>
-        <label>ログインID (英数字・記号)</label>
-        <input type="text" id="l-id">
+        <label>メールアドレス</label>
+        <input type="email" id="l-email">
         <label>パスワード</label>
         <input type="password" id="l-pw">
         <button class="btn-main" id="login-exec">ログイン</button>
-        <div class="sep">------------------------------
-または
-------------------------------</div>
+        <div class="sep">または</div>
         <button class="g-btn" id="g-login">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Google でログイン
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Google アカウントでログイン
         </button>
-        <a href="signup.html" class="link">新規アカウント作成</a>
+        <a href="signup.html" style="color:#888; font-size:13px; margin-top:20px; display:block; text-decoration:none;">新規アカウント作成</a>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
-        import { getFirestore, collection, query, where, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
-
+        
         const firebaseConfig = { apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
 
         document.getElementById('login-exec').onclick = async () => {
-            const id = document.getElementById('l-id').value;
-            const q = query(collection(db, "users"), where("loginId", "==", id));
-            const snap = await getDocs(q);
-            if (snap.empty) return alert("ログインIDが見つかりません。");
             try {
-                await signInWithEmailAndPassword(auth, snap.docs.data().email, document.getElementById('l-pw').value);
-                window.location.href = "todo.html";
-            } catch (e) { alert("ログイン失敗"); }
+                await signInWithEmailAndPassword(auth, document.getElementById('l-email').value, document.getElementById('l-pw').value);
+                window.location.href = "https://akair7jp.github.io/TaskFollow/todo.html";
+            } catch (e) { alert("ログイン失敗: " + e.message); }
         };
 
         document.getElementById('g-login').onclick = async () => {
             const res = await signInWithPopup(auth, new GoogleAuthProvider());
-            await setDoc(doc(db, "users", res.user.uid), { email: res.user.email, loginId: res.user.email.split('@') }, { merge: true });
-            window.location.href = "todo.html";
+            window.location.href = "https://akair7jp.github.io/TaskFollow/todo.html";
         };
     </script>
 </body>
