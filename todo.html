@@ -5,18 +5,32 @@
     <title>タスク管理 - TaskFollow</title>
     <style>
         body { font-family: sans-serif; background: #f8f9fc; margin: 0; color: #333; }
-        header { background: white; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; }
-        .dropdown { position: relative; cursor: pointer; font-size: 14px; }
+        header { background: white; padding: 15px 40px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .dropdown { position: relative; cursor: pointer; }
         .dropdown-content { display: none; position: absolute; background: white; box-shadow: 0 8px 24px rgba(0,0,0,0.1); border-radius: 12px; padding: 10px; z-index: 100; min-width: 200px; top: 100%; left: 0; }
         .dropdown:hover .dropdown-content { display: block; }
-        .dropdown-content button { width: 100%; text-align: left; padding: 10px; border: none; background: none; cursor: pointer; border-bottom: 1px solid #f5f5f5; font-size: 13px; }
+        .dropdown-content button { width: 100%; text-align: left; padding: 10px; border: none; background: none; cursor: pointer; font-size: 13px; }
+        
         .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 20px 40px; }
-        .stat-card { background: white; padding: 20px; border-radius: 16px; display: flex; align-items: center; gap: 15px; border: 1px solid #eee; }
+        .stat-card { background: white; padding: 20px; border-radius: 16px; border: 1px solid #eee; display: flex; align-items: center; gap: 15px; }
+        .stat-card b { font-size: 24px; display: block; }
+        .stat-card small { color: #888; }
+
         .bulk-bar { background: #5b50f2; color: white; margin: 0 40px 20px; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .task-card { background: white; padding: 20px; border-radius: 16px; border: 1px solid #eee; margin: 0 40px 15px; }
-        .btn-purple { background: #5b50f2; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
-        .flag { color: #ff4d4d; margin-right: 5px; }
-        .section-title { font-size: 12px; color: #888; margin-bottom: 10px; }
+        .bulk-btns { display: flex; gap: 10px; }
+        .bulk-btns button, .bulk-btns select { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+        .btn-del { background: #ff4d4d !important; border: none !important; }
+
+        .task-list { padding: 0 40px; }
+        .task-card { background: white; padding: 20px; border-radius: 16px; border: 1px solid #eee; margin-bottom: 15px; position: relative; }
+        .task-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .task-meta { font-size: 12px; color: #888; display: flex; gap: 15px; margin-left: 28px; }
+        .flag { color: #ff4d4d; }
+        .tag { background: #f0efff; color: #5b50f2; padding: 2px 8px; border-radius: 4px; }
+        
+        .status-btns { margin-top: 15px; margin-left: 28px; display: flex; gap: 8px; }
+        .status-btns button { padding: 6px 15px; border-radius: 20px; border: 1px solid #eee; background: white; font-size: 12px; cursor: pointer; color: #999; }
+        .status-btns button.active { background: #5b50f2; color: white; border-color: #5b50f2; }
     </style>
 </head>
 <body>
@@ -24,61 +38,56 @@
         <div>
             <h2 style="margin:0;">タスク管理</h2>
             <div class="dropdown">
-                <span id="u-name">aaa</span> さん ∨
+                <span id="u-display">aaa</span> さん ∨
                 <div class="dropdown-content">
                     <button>メールアドレス変更</button>
                     <button>電話番号変更</button>
                     <button>パスワード変更</button>
-                    <p id="u-id-info" style="font-size:10px; padding:10px; color:#999; margin:0;">ログインID: </p>
+                    <p id="id-display" style="font-size:10px; padding:10px; color:#999; margin:0; border-top:1px solid #eee;">ログインID: -</p>
                     <button id="logout-btn" style="color:#ff4d4d;">ログアウト</button>
                 </div>
             </div>
         </div>
         <div>
             <button onclick="location.href='admin.html'">管理者パネル</button>
-            <button>設定</button>
-            <button>インポート</button>
-            <button>一括登録</button>
-            <button class="btn-purple" onclick="alert('タスク作成ダイアログを表示')">+ 新規タスク</button>
+            <button style="background:#5b50f2; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">+ 新規タスク</button>
         </div>
     </header>
 
     <div class="stats">
-        <div class="stat-card"><span>📋</span><div><b>1</b><br><small>合計</small></div></div>
-        <div class="stat-card"><span>❕</span><div><b>1</b><br><small>未着手</small></div></div>
-        <div class="stat-card"><span>⏳</span><div><b>0</b><br><small>進行中</small></div></div>
-        <div class="stat-card"><span>✅</span><div><b>0</b><br><small>完了</small></div></div>
+        <div class="stat-card"><span>📋</span><div><b>1</b><small>合計</small></div></div>
+        <div class="stat-card"><span>❕</span><div><b>1</b><small>未着手</small></div></div>
+        <div class="stat-card"><span>⏳</span><div><b>0</b><small>進行中</small></div></div>
+        <div class="stat-card"><span>✅</span><div><b>0</b><small>完了</small></div></div>
     </div>
 
     <div class="bulk-bar">
         <div><input type="checkbox"> すべて選択 | 1 件選択中</div>
-        <div style="display:flex; gap:10px;">
-            <select style="background:none; color:white; border:1px solid white; border-radius:5px; padding:5px;"><option>状態変更</option></select>
-            <button style="background:none; color:white; border:1px solid white; border-radius:5px; padding:5px;">一括複製</button>
-            <button style="background:#ff4d4d; color:white; border:none; border-radius:5px; padding:5px 15px;">一括削除</button>
+        <div class="bulk-btns">
+            <select><option>状態変更</option></select>
+            <button>一括複製</button>
+            <button class="btn-del">一括削除</button>
         </div>
     </div>
 
-    <div class="task-card">
-        <div style="display:flex; align-items:center; gap:10px;">
-            <input type="checkbox" checked> <b style="font-size:18px;">てすと</b>
+    <div class="task-list">
+        <!-- 画像 [3, 6] を再現したタスクカード -->
+        <div class="task-card">
+            <div class="task-title">
+                <input type="checkbox" checked>
+                <span>てすと</span>
+            </div>
+            <div class="task-meta">
+                <span><span class="flag">⚑</span>高</span>
+                <span class="tag">仕事</span>
+                <span>🕒 期限なし</span>
+            </div>
+            <div class="status-btns">
+                <button>未着手</button>
+                <button class="active">進行中</button>
+                <button>完了</button>
+            </div>
         </div>
-        <div style="margin-left:25px; font-size:12px; color:#888; display:flex; gap:15px; margin-top:10px;">
-            <span><span class="flag">⚑</span>高</span>
-            <span style="background:#f0efff; color:#5b50f2; padding:2px 8px; border-radius:4px;">仕事</span>
-            <span>🕒 期限なし</span>
-        </div>
-    </div>
-
-    <!-- ソース[6, 7]のテキスト情報の配置 -->
-    <div style="margin: 40px; padding: 20px; background: #fff; border-radius: 12px; border: 1px solid #eee;">
-        <p class="section-title">タスクのインポート</p>
-        <p style="font-size:13px;">CSV または JSON形式 のファイルをアップロードしてください。 ※上限サイズ: 10MB</p>
-        <p style="font-size:11px; color:#999;">CSV例: タイトル,内容,優先度,カテゴリ,YYYY-MM-DD</p>
-        <hr>
-        <p class="section-title">スマート一括登録</p>
-        <p style="font-size:13px;">1行に1タスクを *「タイトル, 内容, 優先度, カテゴリ, 期限(MMDD)」* の形式で入力してください。</p>
-        <p style="font-size:11px; color:#999;">※「MMDD」は現在の年に自動補完されます。空欄または「なし」で期限なしになります。</p>
     </div>
 
     <script type="module">
@@ -94,8 +103,8 @@
             if (!user) window.location.href = "index.html";
             else {
                 const uDoc = await getDoc(doc(db, "users", user.uid));
-                document.getElementById('u-name').innerText = uDoc.data()?.loginId || user.email.split('@');
-                document.getElementById('u-id-info').innerText = "ログインID: " + (uDoc.data()?.loginId || "-");
+                document.getElementById('u-display').innerText = uDoc.data()?.loginId || user.email.split('@');
+                document.getElementById('id-display').innerText = "ログインID: " + (uDoc.data()?.loginId || "-");
             }
         });
         document.getElementById('logout-btn').onclick = () => signOut(auth);
