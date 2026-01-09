@@ -5,7 +5,6 @@
     <title>管理者パネル - TaskFollow</title>
     <style>
         body { font-family: sans-serif; padding: 40px; background: #fafafa; }
-        .search-box { background: white; padding: 20px; border-radius: 12px; display: flex; align-items: center; gap: 10px; margin-bottom: 25px; }
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; }
         th, td { padding: 15px; border-bottom: 1px solid #eee; text-align: left; }
         th { background: #5b50f2; color: white; }
@@ -13,37 +12,34 @@
 </head>
 <body>
     <h1>管理者用ユーザー管理</h1>
-    <div class="search-box">
-        🔍 <input type="text" id="a-search" placeholder="メール、電話番号、ログインIDを検索..." style="flex:1; border:none; padding:10px; font-size:14px;">
-        <button onclick="document.getElementById('a-search').value=''" style="border:none; background:none; cursor:pointer; font-size:20px;">×</button>
+    <div style="margin-bottom:20px;">
+        <input type="text" id="srch" placeholder="ログインID メールアドレス 電話番号 検索..." style="padding:10px; width:300px;">
+        <button onclick="document.getElementById('srch').value=''">×</button>
     </div>
     <table>
         <thead>
             <tr><th>ログインID</th><th>メールアドレス</th><th>電話番号</th><th>操作</th></tr>
         </thead>
-        <tbody id="user-rows"></tbody>
+        <tbody id="rows"></tbody>
     </table>
-    <button onclick="location.href='todo.html'" style="margin-top:20px; padding:10px 20px; cursor:pointer;">戻る</button>
+    <button onclick="location.href='todo.html'" style="margin-top:20px;">戻る</button>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
-
         const db = getFirestore(initializeApp({ apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff" }));
 
         onSnapshot(collection(db, "users"), (snap) => {
-            const tbody = document.getElementById('user-rows');
+            const tbody = document.getElementById('rows');
             tbody.innerHTML = "";
             snap.forEach(d => {
                 const u = d.data();
-                tbody.innerHTML += `<tr>
-                    <td>${u.loginId}</td><td>${u.email}</td><td>${u.phone || '-'}</td>
-                    <td><button onclick="delUser('${d.id}')" style="color:red; background:none; border:none; cursor:pointer;">削除</button></td>
-                </tr>`;
+                tbody.innerHTML += `<tr><td>${u.loginId}</td><td>${u.email}</td><td>${u.phone || '-'}</td>
+                    <td><button onclick="delUser('${d.id}')" style="color:red; border:none; background:none; cursor:pointer;">削除</button></td></tr>`;
             });
         });
 
-        window.delUser = async (id) => { if (confirm("ユーザーを削除しますか？")) await deleteDoc(doc(db, "users", id)); };
+        window.delUser = async (id) => { if (confirm("削除しますか？")) await deleteDoc(doc(db, "users", id)); };
     </script>
 </body>
 </html>
