@@ -4,109 +4,157 @@
     <meta charset="UTF-8">
     <title>タスク管理 - TaskFollow</title>
     <style>
-        body { font-family: sans-serif; background: #f8f9fc; margin: 0; color: #333; }
+        :root { --primary: #5b50f2; --bg: #f8f9fc; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; color: #333; }
         header { background: white; padding: 15px 40px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .dropdown { position: relative; cursor: pointer; }
-        .dropdown-content { display: none; position: absolute; background: white; box-shadow: 0 8px 24px rgba(0,0,0,0.1); border-radius: 12px; padding: 10px; z-index: 100; min-width: 200px; top: 100%; left: 0; }
-        .dropdown:hover .dropdown-content { display: block; }
-        .dropdown-content button { width: 100%; text-align: left; padding: 10px; border: none; background: none; cursor: pointer; font-size: 13px; }
         
+        /* CSSで再現したアイコン群 */
+        .icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .ic-total { background: #eef2ff; color: #5b50f2; }
+        .ic-un { background: #fff7ed; color: #f97316; }
+        .ic-ing { background: #f0f9ff; color: #0ea5e9; }
+        .ic-fin { background: #f0fdf4; color: #22c55e; }
+        
+        /* 旗アイコン (SVG) */
+        .flag-red { width: 14px; height: 14px; fill: #ff4d4d; vertical-align: middle; margin-right: 4px; }
+
         .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 20px 40px; }
         .stat-card { background: white; padding: 20px; border-radius: 16px; border: 1px solid #eee; display: flex; align-items: center; gap: 15px; }
-        .stat-card b { font-size: 24px; display: block; }
-        .stat-card small { color: #888; }
+        .stat-card b { font-size: 24px; display: block; line-height: 1; }
+        .stat-card small { color: #888; font-size: 12px; }
 
-        .bulk-bar { background: #5b50f2; color: white; margin: 0 40px 20px; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .bulk-btns { display: flex; gap: 10px; }
-        .bulk-btns button, .bulk-btns select { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); border-radius: 8px; padding: 8px 12px; cursor: pointer; }
-        .btn-del { background: #ff4d4d !important; border: none !important; }
-
-        .task-list { padding: 0 40px; }
-        .task-card { background: white; padding: 20px; border-radius: 16px; border: 1px solid #eee; margin-bottom: 15px; position: relative; }
-        .task-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
-        .task-meta { font-size: 12px; color: #888; display: flex; gap: 15px; margin-left: 28px; }
-        .flag { color: #ff4d4d; }
-        .tag { background: #f0efff; color: #5b50f2; padding: 2px 8px; border-radius: 4px; }
+        .bulk-bar { background: var(--primary); color: white; margin: 0 40px 20px; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
         
-        .status-btns { margin-top: 15px; margin-left: 28px; display: flex; gap: 8px; }
-        .status-btns button { padding: 6px 15px; border-radius: 20px; border: 1px solid #eee; background: white; font-size: 12px; cursor: pointer; color: #999; }
-        .status-btns button.active { background: #5b50f2; color: white; border-color: #5b50f2; }
+        .task-card { background: white; padding: 20px; border-radius: 16px; border: 1px solid #eee; margin: 0 40px 15px; transition: 0.2s; }
+        .st-btn { padding: 6px 15px; border-radius: 20px; border: 1px solid #eee; background: white; cursor: pointer; font-size: 12px; color: #999; margin-right: 5px; }
+        .st-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 20px; width: 450px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); z-index: 1000; }
+        .hidden { display: none; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; }
     </style>
 </head>
 <body>
     <header>
-        <div>
-            <h2 style="margin:0;">タスク管理</h2>
-            <div class="dropdown">
-                <span id="u-display">aaa</span> さん ∨
-                <div class="dropdown-content">
-                    <button>メールアドレス変更</button>
-                    <button>電話番号変更</button>
-                    <button>パスワード変更</button>
-                    <p id="id-display" style="font-size:10px; padding:10px; color:#999; margin:0; border-top:1px solid #eee;">ログインID: -</p>
-                    <button id="logout-btn" style="color:#ff4d4d;">ログアウト</button>
-                </div>
-            </div>
-        </div>
-        <div>
-            <button onclick="location.href='admin.html'">管理者パネル</button>
-            <button style="background:#5b50f2; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">+ 新規タスク</button>
+        <div><h2 style="margin:0;">タスク管理</h2><span id="u-display" style="font-size:14px; color:#888;">...</span> さん</div>
+        <div style="display:flex; gap:10px;">
+            <button onclick="toggleModal(true)" style="background:var(--primary); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">+ 新規タスク</button>
+            <button id="logout-btn" style="border:none; background:none; color:#888; cursor:pointer;">ログアウト</button>
         </div>
     </header>
 
     <div class="stats">
-        <div class="stat-card"><span>📋</span><div><b>1</b><small>合計</small></div></div>
-        <div class="stat-card"><span>❕</span><div><b>1</b><small>未着手</small></div></div>
-        <div class="stat-card"><span>⏳</span><div><b>0</b><small>進行中</small></div></div>
-        <div class="stat-card"><span>✅</span><div><b>0</b><small>完了</small></div></div>
-    </div>
-
-    <div class="bulk-bar">
-        <div><input type="checkbox"> すべて選択 | 1 件選択中</div>
-        <div class="bulk-btns">
-            <select><option>状態変更</option></select>
-            <button>一括複製</button>
-            <button class="btn-del">一括削除</button>
+        <div class="stat-card">
+            <div class="icon ic-total"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h10M8 12h10M8 18h10M4 6h.01M4 12h.01M4 18h.01"/></svg></div>
+            <div><b id="c-total">0</b><small>合計</small></div>
+        </div>
+        <div class="stat-card">
+            <div class="icon ic-un"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+            <div><b id="c-un">0</b><small>未着手</small></div>
+        </div>
+        <div class="stat-card">
+            <div class="icon ic-ing"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>
+            <div><b id="c-ing">0</b><small>進行中</small></div>
+        </div>
+        <div class="stat-card">
+            <div class="icon ic-fin"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div><b id="c-fin">0</b><small>完了</small></div>
         </div>
     </div>
 
-    <div class="task-list">
-        <!-- 画像 [3, 6] を再現したタスクカード -->
-        <div class="task-card">
-            <div class="task-title">
-                <input type="checkbox" checked>
-                <span>てすと</span>
-            </div>
-            <div class="task-meta">
-                <span><span class="flag">⚑</span>高</span>
-                <span class="tag">仕事</span>
-                <span>🕒 期限なし</span>
-            </div>
-            <div class="status-btns">
-                <button>未着手</button>
-                <button class="active">進行中</button>
-                <button>完了</button>
-            </div>
+    <div class="bulk-bar" id="bulk-ui" style="display:none;">
+        <div id="sel-info">0 件選択中</div>
+        <button id="bulk-del-btn" style="background:#ff4d4d; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;">一括削除</button>
+    </div>
+
+    <div id="task-container" class="task-list"></div>
+
+    <!-- モーダルとオーバーレイ -->
+    <div id="overlay" class="overlay hidden" onclick="toggleModal(false)"></div>
+    <div id="modal" class="modal hidden">
+        <h3 style="margin-top:0;">タスク作成</h3>
+        <input type="text" id="t-input" placeholder="タスク名を入力..." style="width:100%; padding:12px; border:1px solid #eee; border-radius:8px; box-sizing:border-box; margin-bottom:15px;">
+        <select id="t-priority" style="width:100%; padding:10px; margin-bottom:15px; border-radius:8px; border:1px solid #eee;">
+            <option value="高">優先度: 高</option><option value="中" selected>優先度: 中</option><option value="低">優先度: 低</option>
+        </select>
+        <div style="display:flex; gap:10px;">
+            <button onclick="toggleModal(false)" style="flex:1; padding:12px; border:none; border-radius:8px; cursor:pointer;">キャンセル</button>
+            <button onclick="addTask()" style="flex:1; padding:12px; border:none; border-radius:8px; background:var(--primary); color:white; cursor:pointer; font-weight:bold;">保存</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, deleteDoc, orderBy } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
         const app = initializeApp({ apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff" });
         const auth = getAuth(app);
         const db = getFirestore(app);
+        let userNow = null;
 
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) window.location.href = "index.html";
-            else {
-                const uDoc = await getDoc(doc(db, "users", user.uid));
-                document.getElementById('u-display').innerText = uDoc.data()?.loginId || user.email.split('@');
-                document.getElementById('id-display').innerText = "ログインID: " + (uDoc.data()?.loginId || "-");
-            }
+        onAuthStateChanged(auth, (u) => {
+            if (!u) window.location.href = "index.html";
+            userNow = u;
+            document.getElementById('u-display').innerText = u.email.split('@');
+            initApp();
         });
+
+        window.toggleModal = (s) => {
+            document.getElementById('modal').classList.toggle('hidden', !s);
+            document.getElementById('overlay').classList.toggle('hidden', !s);
+        };
+
+        window.addTask = async () => {
+            const val = document.getElementById('t-input').value;
+            if (!val) return;
+            await addDoc(collection(db, "tasks"), {
+                uid: userNow.uid, title: val, priority: document.getElementById('t-priority').value,
+                status: "未着手", createdAt: new Date()
+            });
+            toggleModal(false);
+            document.getElementById('t-input').value = "";
+        };
+
+        function initApp() {
+            const q = query(collection(db, "tasks"), where("uid", "==", userNow.uid), orderBy("createdAt", "desc"));
+            onSnapshot(q, (snap) => {
+                const cont = document.getElementById('task-container');
+                cont.innerHTML = "";
+                let s = { total: snap.size, un: 0, ing: 0, fin: 0 };
+                
+                snap.forEach(d => {
+                    const t = d.data();
+                    if (t.status === "未着手") s.un++;
+                    else if (t.status === "進行中") s.ing++;
+                    else s.fin++;
+
+                    cont.innerHTML += `
+                        <div class="task-card">
+                            <div style="font-weight:bold; font-size:18px; margin-bottom:10px;">
+                                <input type="checkbox"> ${t.title}
+                            </div>
+                            <div style="font-size:12px; color:#888; margin-left:25px; margin-bottom:15px;">
+                                <svg class="flag-red" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                                ${t.priority} <span style="margin-left:15px;">🕒 期限なし</span>
+                            </div>
+                            <div style="margin-left:25px;">
+                                <button class="st-btn ${t.status=='未着手'?'active':''}" onclick="upSt('${d.id}','未着手')">未着手</button>
+                                <button class="st-btn ${t.status=='進行中'?'active':''}" onclick="upSt('${d.id}','進行中')">進行中</button>
+                                <button class="st-btn ${t.status=='完了'?'active':''}" onclick="upSt('${d.id}','完了')">完了</button>
+                                <button onclick="delT('${d.id}')" style="float:right; border:none; background:none; color:red; cursor:pointer;">削除</button>
+                            </div>
+                        </div>`;
+                });
+                document.getElementById('c-total').innerText = s.total;
+                document.getElementById('c-un').innerText = s.un;
+                document.getElementById('c-ing').innerText = s.ing;
+                document.getElementById('c-fin').innerText = s.fin;
+            });
+        }
+
+        window.upSt = async (id, st) => await updateDoc(doc(db, "tasks", id), { status: st });
+        window.delT = async (id) => { if (confirm("削除しますか？")) await deleteDoc(doc(db, "tasks", id)); };
         document.getElementById('logout-btn').onclick = () => signOut(auth);
     </script>
 </body>
