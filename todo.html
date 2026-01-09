@@ -5,33 +5,33 @@
     <title>タスク管理 - TaskFollow</title>
     <style>
         :root { --p: #5b50f2; --bg: #f8f9fc; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; color: #333; }
         header { background: white; padding: 15px 40px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         
-        /* ユーザープルダウン */
-        .user-menu { position: relative; cursor: pointer; font-weight: bold; }
-        .dropdown { display: none; position: absolute; top: 100%; left: 0; background: white; box-shadow: 0 8px 24px rgba(0,0,0,0.1); border-radius: 12px; z-index: 100; min-width: 180px; padding: 10px 0; }
-        .user-menu:hover .dropdown { display: block; }
-        .dropdown button { width: 100%; border: none; background: none; text-align: left; padding: 12px 20px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f5f5f5; }
+        /* ユーザープルダウン [4] */
+        .u-area { position: relative; cursor: pointer; font-size: 14px; font-weight: bold; }
+        .dropdown { display: none; position: absolute; top: 100%; left: 0; background: white; box-shadow: 0 8px 25px rgba(0,0,0,0.1); border-radius: 12px; z-index: 100; min-width: 200px; padding: 10px 0; }
+        .u-area:hover .dropdown { display: block; }
+        .dropdown button { width: 100%; border: none; background: none; text-align: left; padding: 12px 20px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f9f9f9; }
         .dropdown button:last-child { color: #ff4d4d; border: none; }
 
-        /* 統計カード (日本語表記 & 非OSアイコン) */
+        /* 統計 [3] */
         .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 20px 40px; }
         .stat-card { background: white; padding: 20px; border-radius: 16px; border: 1px solid #eee; display: flex; align-items: center; gap: 15px; }
-        .icon-box { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: #f0efff; color: var(--p); }
+        .ic-box { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
 
-        /* 一括操作バー */
-        .bulk-bar { background: var(--p); color: white; margin: 0 40px 20px; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .bulk-btns button { background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-left: 10px; }
+        /* 一括バー [3] */
+        .bulk-bar { background: var(--p); color: white; margin: 0 40px 20px; padding: 15px 25px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .bulk-actions button, .bulk-actions select { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 8px 15px; border-radius: 8px; cursor: pointer; margin-left: 10px; font-size: 13px; }
 
-        /* タスクカード */
-        .task-card { background: white; padding: 20px; border-radius: 16px; border: 1px solid #eee; margin: 0 40px 15px; position: relative; }
-        .flag { display: inline-block; width: 12px; height: 12px; background: #ff4d4d; clip-path: polygon(0 0, 100% 25%, 0 50%, 0 100%, 15% 100%, 15% 50%, 0 50%); margin-right: 5px; }
-        .st-btn { padding: 8px 18px; border-radius: 20px; border: 1px solid #eee; background: white; font-size: 12px; cursor: pointer; color: #999; margin-right: 10px; }
+        /* タスクカード [6] */
+        .task-card { background: white; padding: 25px; border-radius: 20px; border: 1px solid #eee; margin: 0 40px 15px; }
+        .flag { display: inline-block; width: 14px; height: 14px; background: #ff4d4d; clip-path: polygon(0 0, 100% 25%, 0 50%, 0 100%, 15% 100%, 15% 50%, 0 50%); margin-right: 6px; }
+        .st-btn { padding: 8px 20px; border-radius: 25px; border: 1px solid #eee; background: white; font-size: 12px; cursor: pointer; color: #999; margin-right: 10px; }
         .st-btn.active { background: var(--p); color: white; border-color: var(--p); }
 
-        /* モーダル */
-        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 20px; width: 450px; z-index: 1000; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        /* モーダル [1, 10] */
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 35px; border-radius: 24px; width: 480px; z-index: 1000; box-shadow: 0 20px 80px rgba(0,0,0,0.2); }
         .hidden { display: none; }
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; }
     </style>
@@ -39,100 +39,103 @@
 <body>
     <header>
         <div>
-            <h2 style="margin:0;">タスク管理</h2>
-            <div class="user-menu"><span id="u-name">...</span> さん ∨
+            <h2 style="margin:0;">タスク管理 [7]</h2>
+            <p style="font-size:11px; color:#999; margin:3px 0 10px;">あなたのタスクを整理して、効率的に管理しましょう [7]</p>
+            <div class="u-area"><span id="u-name">...</span> さん ∨ [3]
                 <div class="dropdown">
-                    <button onclick="alert('メアド変更画面へ')">メールアドレス変更</button>
-                    <button onclick="alert('パスワード変更画面へ')">パスワード変更</button>
-                    <button onclick="alert('ユーザー名変更画面へ')">ユーザー名変更</button>
-                    <button id="logout-btn">ログアウト</button>
+                    <button onclick="alert('メールアドレス変更')">メールアドレス変更 [7]</button>
+                    <button onclick="alert('電話番号変更')">電話番号変更 [7]</button>
+                    <button onclick="alert('パスワード変更')">パスワード変更 [7]</button>
+                    <button id="logout-btn">ログアウト [7]</button>
                 </div>
             </div>
         </div>
-        <div style="display:flex; gap:10px;">
-            <button onclick="showImport()">インポート</button>
-            <button onclick="showBulk()">一括登録</button>
-            <button onclick="toggleModal(true)" style="background:var(--p); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">+ 新規タスク</button>
+        <div style="display:flex; gap:12px;">
+            <button onclick="showImport()">インポート [7]</button>
+            <button onclick="showBulk()">一括登録 [7]</button>
+            <button onclick="toggleModal(true)" style="background:var(--p); color:white; border:none; padding:12px 24px; border-radius:10px; cursor:pointer;">+ 新規タスク [7]</button>
         </div>
     </header>
 
     <div class="stats">
-        <div class="stat-card"><div class="icon-box">Σ</div><div><b id="c-all">0</b><br><small>合計</small></div></div>
-        <div class="stat-card"><div class="icon-box">!</div><div><b id="c-un">0</b><br><small>未着手</small></div></div>
-        <div class="stat-card"><div class="icon-box">~</div><div><b id="c-ing">0</b><br><small>進行中</small></div></div>
-        <div class="stat-card"><div class="icon-box">v</div><div><b id="c-fin">0</b><br><small>完了</small></div></div>
+        <div class="stat-card"><div class="ic-box" style="background:#f0efff; color:var(--p);">Σ</div><div><b id="c-all">0</b><br><small>合計 [3]</small></div></div>
+        <div class="stat-card"><div class="ic-box" style="background:#fff7ed; color:#f97316;">!</div><div><b id="c-un">0</b><br><small>未着手 [3]</small></div></div>
+        <div class="stat-card"><div class="ic-box" style="background:#f0f9ff; color:#0ea5e9;">~</div><div><b id="c-ing">0</b><br><small>進行中 [3]</small></div></div>
+        <div class="stat-card"><div class="ic-box" style="background:#f0fdf4; color:#22c55e;">v</div><div><b id="c-fin">0</b><br><small>完了 [3]</small></div></div>
     </div>
 
     <div class="bulk-bar">
-        <div><button onclick="selectAll()">すべて選択</button> <span id="sel-info">0 件選択中</span></div>
-        <div class="bulk-btns">
-            <button onclick="bulkStatus()">状態変更</button>
-            <button onclick="bulkCopy()">一括複製</button>
-            <button onclick="bulkDel()" style="background:#ff4d4d;">一括削除</button>
+        <div><button onclick="selectAll()" style="background:none; border:1px solid white; color:white; padding:6px 12px; border-radius:6px; cursor:pointer;">すべて選択 [7]</button> <span id="sel-txt" style="margin-left:15px;">0 件選択中 [3]</span></div>
+        <div class="bulk-actions">
+            <select id="bulk-st"><option>状態変更 [7]</option><option>未着手</option><option>進行中</option><option>完了</option></select>
+            <button onclick="bulkCopy()">一括複製 [7]</button>
+            <button onclick="bulkDel()" style="background:#ff4d4d; border:none;">一括削除 [7]</button>
         </div>
     </div>
 
-    <div style="padding: 0 40px 10px; display:flex; gap:10px;">
-        <select id="f-st"><option value="">全ステータス</option><option>未着手</option><option>進行中</option><option>完了</option></select>
-        <select id="f-pri"><option value="">全優先度</option><option>高</option><option>中</option><option>低</option></select>
-        <select id="f-cat"><option value="">全カテゴリ</option><option>仕事</option><option>プライベート</option></select>
-        <select id="f-sort"><option value="pri">優先度順</option><option value="date">期限順</option></select>
-        <div style="margin-left:auto;">
-            <button onclick="setView('list')">リスト</button>
-            <button onclick="setView('cal')">カレンダー</button>
+    <div style="padding: 0 40px 15px; display:flex; gap:12px; align-items:center;">
+        <select id="f-st"><option value="">全ステータス [3]</option><option>未着手</option><option>進行中</option><option>完了</option></select>
+        <select id="f-pri"><option value="">全優先度 [3]</option><option>高</option><option>中</option><option>低</option></select>
+        <select id="f-cat"><option value="">全カテゴリ [3]</option></select>
+        <select id="f-sort"><option value="pri">優先度順 [3]</option><option value="date">期限順 [3]</option></select>
+        <div style="margin-left:auto; background:#eee; padding:3px; border-radius:8px;">
+            <button id="v-list" onclick="setView('list')" style="border:none; padding:6px 15px; border-radius:6px; cursor:pointer; background:white;">リスト [3]</button>
+            <button id="v-cal" onclick="setView('cal')" style="border:none; padding:6px 15px; border-radius:6px; cursor:pointer; background:none; color:#888;">カレンダー [3]</button>
         </div>
     </div>
 
     <div id="task-list"></div>
 
-    <!-- モーダル: 新規タスク -->
+    <!-- モーダル: 新規タスク [1, 10] -->
     <div id="overlay" class="overlay hidden" onclick="toggleModal(false)"></div>
     <div id="modal" class="modal hidden">
-        <h3>タスク作成</h3>
-        <input type="text" id="t-title" placeholder="タイトル" style="width:100%; padding:10px; margin-bottom:15px;">
-        <select id="t-pri-val" style="width:100%; padding:10px; margin-bottom:15px;"><option>高</option><option selected>中</option><option>低</option></select>
-        <input type="text" id="t-cat-val" placeholder="カテゴリー" style="width:100%; padding:10px; margin-bottom:15px;">
-        
-        <div style="border:1px solid #eee; padding:15px; border-radius:10px;">
-            <label><input type="checkbox" id="t-limit-on" checked> 期限を設ける</label>
-            <div style="margin-top:10px;">
-                <small>スマート入力 (MMDD)</small>
-                <input type="text" id="t-mmdd" placeholder="0520" style="width:100%; padding:8px; margin-bottom:10px;">
-                <small>カレンダーから選択</small>
-                <input type="date" id="t-date" style="width:100%; padding:8px;">
+        <h3 style="margin:0 0 25px;">新規タスク</h3>
+        <input type="text" id="t-title" placeholder="タスク名を入力... [1]" style="width:100%; padding:14px; border:1px solid #eee; border-radius:10px; box-sizing:border-box; margin-bottom:15px;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:15px;">
+            <select id="t-pri-val" style="padding:12px; border-radius:10px; border:1px solid #eee;"><option>優先度: 高</option><option selected>優先度: 中</option><option>優先度: 低</option></select>
+            <input type="text" id="t-cat-val" placeholder="カテゴリ [10]" style="padding:12px; border-radius:10px; border:1px solid #eee;">
+        </div>
+        <div style="background:#f9f9fc; padding:20px; border-radius:15px; border:1px solid #f0f0f5;">
+            <label style="font-size:13px; font-weight:bold;"><input type="checkbox" id="t-limit-on" checked> 期限を設ける [1, 8, 10]</label>
+            <div style="margin-top:15px;">
+                <small style="color:#888;">スマート入力 (MMDD) [1, 8]</small>
+                <input type="text" id="t-mmdd" placeholder="例: 0520 [1]" style="width:100%; padding:10px; margin:5px 0 15px; border:1px solid #eee; border-radius:8px;">
+                <small style="color:#888;">カレンダーから選択 [1, 8]</small>
+                <input type="date" id="t-date" style="width:100%; padding:10px; border:1px solid #eee; border-radius:8px;">
             </div>
         </div>
-        
-        <div style="margin-top:20px; display:flex; gap:10px;">
-            <button onclick="toggleModal(false)" style="flex:1;">キャンセル</button>
-            <button onclick="saveTask()" style="flex:1; background:var(--p); color:white; border:none; border-radius:8px;">タスクを保存</button>
+        <textarea id="t-memo" placeholder="詳細メモ... [1, 10]" style="width:100%; height:80px; margin-top:15px; border:1px solid #eee; border-radius:10px; padding:12px; box-sizing:border-box;"></textarea>
+        <div style="display:flex; gap:15px; margin-top:25px;">
+            <button onclick="toggleModal(false)" style="flex:1; padding:14px; border-radius:10px; border:none; background:#eee;">キャンセル [1]</button>
+            <button onclick="saveTask()" style="flex:1; padding:14px; border-radius:10px; border:none; background:var(--p); color:white; font-weight:bold;">保存 [1]</button>
         </div>
     </div>
 
-    <!-- モーダル: インポート -->
+    <!-- インポート画面 [10] -->
     <div id="import-modal" class="modal hidden">
         <h3>タスクのインポート</h3>
-        <p style="font-size:12px; color:#666;">CSV または JSON形式 (上限10MB)</p>
-        <input type="file" id="f-upload">
-        <button onclick="document.getElementById('import-modal').classList.add('hidden')">閉じる</button>
+        <p style="font-size:12px; color:#666; margin-bottom:20px;">CSV または JSON形式 のファイルをアップロードしてください。 [10]<br>※上限サイズ: 10MB [10]</p>
+        <input type="file" id="f-upload" style="margin-bottom:20px;">
+        <button onclick="document.getElementById('import-modal').classList.add('hidden')" style="width:100%; padding:10px;">閉じる</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, deleteDoc, getDoc, orderBy } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-        const app = initializeApp({ apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff" });
+        const config = { apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff" };
+        const app = initializeApp(config);
         const auth = getAuth(app);
         const db = getFirestore(app);
         let userNow = null;
 
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) window.location.href = "index.html";
-            userNow = user;
-            const uDoc = await getDoc(doc(db, "users", user.uid));
-            document.getElementById('u-name').innerText = uDoc.data()?.displayName || user.email.split('@');
-            renderTasks();
+        onAuthStateChanged(auth, async (u) => {
+            if (!u) window.location.href = "index.html";
+            userNow = u;
+            const uDoc = await getDoc(doc(db, "users", u.uid));
+            document.getElementById('u-name').innerText = uDoc.data()?.displayName || u.email.split('@');
+            initTasks();
         });
 
         window.toggleModal = (s) => {
@@ -141,63 +144,55 @@
         };
 
         window.saveTask = async () => {
-            const limitOn = document.getElementById('t-limit-on').checked;
-            let dateVal = limitOn ? (document.getElementById('t-date').value || "期限なし") : "期限なし";
-            
+            const limit = document.getElementById('t-limit-on').checked;
+            const dateStr = limit ? (document.getElementById('t-date').value || "期限なし") : "期限なし";
             await addDoc(collection(db, "tasks"), {
-                uid: userNow.uid,
-                title: document.getElementById('t-title').value,
-                priority: document.getElementById('t-pri-val').value,
+                uid: userNow.uid, title: document.getElementById('t-title').value,
+                priority: document.getElementById('t-pri-val').value.replace('優先度: ',''),
                 category: document.getElementById('t-cat-val').value || "なし",
-                date: dateVal,
-                status: "未着手",
-                createdAt: new Date()
+                date: dateStr, status: "未着手", createdAt: new Date()
             });
             toggleModal(false);
         };
 
-        function renderTasks() {
-            const q = query(collection(db, "tasks"), where("uid", "==", userNow.uid));
+        function initTasks() {
+            const q = query(collection(db, "tasks"), where("uid", "==", userNow.uid), orderBy("createdAt", "desc"));
             onSnapshot(q, (snap) => {
                 const list = document.getElementById('task-list');
                 list.innerHTML = "";
-                let counts = { all: snap.size, un: 0, ing: 0, fin: 0 };
-                
+                let s = { all: snap.size, un: 0, ing: 0, fin: 0 };
                 snap.forEach(d => {
                     const t = d.data();
-                    if(t.status === "未着手") counts.un++;
-                    else if(t.status === "進行中") counts.ing++;
-                    else counts.fin++;
-
+                    if(t.status === "未着手") s.un++; else if(t.status === "進行中") s.ing++; else s.fin++;
                     list.innerHTML += `
                         <div class="task-card">
-                            <div style="font-size:18px; font-weight:bold;"><input type="checkbox" class="t-sel" data-id="${d.id}"> ${t.title}</div>
-                            <div style="margin: 10px 0 15px 25px; font-size:12px; color:#888; display:flex; gap:15px;">
+                            <div style="font-size:20px; font-weight:bold; display:flex; align-items:center; gap:12px;">
+                                <input type="checkbox" class="t-sel" data-id="${d.id}"> ${t.title}
+                            </div>
+                            <div style="margin: 12px 0 20px 30px; font-size:12px; color:#888; display:flex; gap:20px;">
                                 <span><span class="flag"></span>${t.priority}</span>
-                                <span style="background:#f0efff; color:var(--p); padding:2px 8px; border-radius:4px;">${t.category}</span>
+                                <span style="background:#f0efff; color:var(--p); padding:2px 10px; border-radius:6px; font-weight:bold;">${t.category}</span>
                                 <span>🕒 ${t.date}</span>
                             </div>
-                            <div style="margin-left:25px;">
-                                <button class="st-btn ${t.status=='未着手'?'active':''}" onclick="upSt('${d.id}','未着手')">未着手</button>
-                                <button class="st-btn ${t.status=='進行中'?'active':''}" onclick="upSt('${d.id}','進行中')">進行中</button>
-                                <button class="st-btn ${t.status=='完了'?'active':''}" onclick="upSt('${d.id}','完了')">完了</button>
-                                <button onclick="copyTask('${d.id}')" style="margin-left:15px; border:none; background:none; cursor:pointer;">複製</button>
-                                <button onclick="delTask('${d.id}')" style="color:red; border:none; background:none; cursor:pointer;">削除</button>
+                            <div style="margin-left:30px; display:flex; align-items:center;">
+                                <button class="st-btn ${t.status=='未着手'?'active':''}" onclick="upSt('${d.id}','未着手')">未着手 [7]</button>
+                                <button class="st-btn ${t.status=='進行中'?'active':''}" onclick="upSt('${d.id}','進行中')">進行中 [7]</button>
+                                <button class="st-btn ${t.status=='完了'?'active':''}" onclick="upSt('${d.id}','完了')">完了 [7]</button>
+                                <button onclick="copyTask('${d.id}')" style="margin-left:auto; border:none; background:none; cursor:pointer; font-size:13px;">複製 [7]</button>
+                                <button onclick="delTask('${d.id}')" style="color:#ff4d4d; border:none; background:none; cursor:pointer; font-size:13px; margin-left:15px;">削除 [7]</button>
                             </div>
                         </div>`;
                 });
-                document.getElementById('c-all').innerText = counts.all;
-                document.getElementById('c-un').innerText = counts.un;
-                document.getElementById('c-ing').innerText = counts.ing;
-                document.getElementById('c-fin').innerText = counts.fin;
+                document.getElementById('c-all').innerText = s.all;
+                document.getElementById('c-un').innerText = s.un;
+                document.getElementById('c-ing').innerText = s.ing;
+                document.getElementById('c-fin').innerText = s.fin;
             });
         }
 
         window.upSt = async (id, st) => await updateDoc(doc(db, "tasks", id), { status: st });
         window.delTask = async (id) => { if(confirm("削除しますか？")) await deleteDoc(doc(db, "tasks", id)); };
-        document.getElementById('logout-btn').onclick = () => signOut(auth).then(() => window.location.href="index.html");
         
-        // スマート日付補完
         document.getElementById('t-mmdd').oninput = (e) => {
             if(e.target.value.length === 4) {
                 const m = e.target.value.substring(0,2);
@@ -205,6 +200,9 @@
                 document.getElementById('t-date').value = `2025-${m}-${d}`;
             }
         };
+
+        window.showImport = () => document.getElementById('import-modal').classList.remove('hidden');
+        document.getElementById('logout-btn').onclick = () => signOut(auth).then(() => window.location.href="index.html");
     </script>
 </body>
 </html>
