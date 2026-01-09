@@ -2,17 +2,17 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>TaskFollow - タスク管理</title>
+    <title>TaskFollow - ログイン</title>
     <style>
         body { font-family: sans-serif; background: #f8f9fc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); width: 380px; text-align: center; }
-        h1 { color: #5b50f2; font-size: 32px; margin: 0; }
+        h1 { color: #5b50f2; font-size: 32px; margin: 0; font-weight: bold; }
         .sub { font-size: 13px; color: #888; margin: 10px 0 30px; }
         label { display: block; text-align: left; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #555; }
         input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #eee; border-radius: 8px; background: #fafafa; box-sizing: border-box; }
-        .btn-login { background: #5b50f2; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .btn-main { background: #5b50f2; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
         .sep { color: #ccc; margin: 20px 0; font-size: 12px; white-space: pre; }
-        .g-btn { background: white; border: 1px solid #eee; padding: 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; font-size: 14px; color: #333; }
+        .g-btn { background: white; border: 1px solid #eee; padding: 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; font-size: 14px; text-decoration: none; color: #333; }
         .link { color: #888; font-size: 13px; margin-top: 20px; display: block; text-decoration: none; }
     </style>
 </head>
@@ -20,22 +20,17 @@
     <div class="card">
         <h1>TaskFollow</h1>
         <p class="sub">あなたのタスクを整理して、効率的に管理しましょう</p>
-
         <label>ログインID (英数字・記号)</label>
         <input type="text" id="l-id">
         <label>パスワード</label>
         <input type="password" id="l-pw">
-
-        <button class="btn-login" id="login-exec">ログイン</button>
-
+        <button class="btn-main" id="login-exec">ログイン</button>
         <div class="sep">------------------------------
 または
 ------------------------------</div>
-
         <button class="g-btn" id="g-login">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Google でログイン
         </button>
-
         <a href="signup.html" class="link">新規アカウント作成</a>
     </div>
 
@@ -51,18 +46,13 @@
 
         document.getElementById('login-exec').onclick = async () => {
             const id = document.getElementById('l-id').value;
-            const pw = document.getElementById('l-pw').value;
-            if (id === "Admin" && pw === "Admin") return window.location.href = "admin.html";
-
             const q = query(collection(db, "users"), where("loginId", "==", id));
             const snap = await getDocs(q);
             if (snap.empty) return alert("ログインIDが見つかりません。");
-            
             try {
-                const userDoc = snap.docs.data();
-                await signInWithEmailAndPassword(auth, userDoc.email, pw);
+                await signInWithEmailAndPassword(auth, snap.docs.data().email, document.getElementById('l-pw').value);
                 window.location.href = "todo.html";
-            } catch (e) { alert("ログインに失敗しました。パスワードを確認してください。"); }
+            } catch (e) { alert("ログイン失敗"); }
         };
 
         document.getElementById('g-login').onclick = async () => {
