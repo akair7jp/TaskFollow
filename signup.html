@@ -3,55 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <title>TaskFollow - 新規登録</title>
-    <script src="https://www.google.com/recaptcha/enterprise.js" async defer></script>
     <style>
         body { font-family: sans-serif; background: #f8f9fc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); width: 380px; text-align: center; }
-        h1 { color: #5b50f2; font-size: 32px; margin-bottom: 20px; }
         input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #eee; border-radius: 8px; background: #fafafa; box-sizing: border-box; }
         button { background: #5b50f2; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .link { color: #888; font-size: 13px; margin-top: 20px; display: block; text-decoration: none; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>TaskFollow</h1>
+        <h1 style="color:#5b50f2;">TaskFollow</h1>
         <input type="email" id="s-email" placeholder="メールアドレス *">
         <input type="tel" id="s-phone" placeholder="電話番号 (忘却用) *">
-        <input type="text" id="s-id" placeholder="ログインID (英数字・記号)">
+        <input type="text" id="s-id" placeholder="ログインID">
         <input type="password" id="s-pw" placeholder="パスワード">
         <input type="password" id="s-pw-conf" placeholder="パスワード (再確認)">
-        <div class="g-recaptcha" data-sitekey="6Lfa3EEsAAAAAN5du12tPAgAdLRS3gve_6onwMjj" data-action="LOGIN" style="margin-bottom:15px;"></div>
         <button id="signup-exec">新規アカウント作成</button>
-        <a href="index.html" class="link">ログインへ戻る</a>
+        <a href="index.html" style="display:block; margin-top:20px; color:#888; font-size:13px; text-decoration:none;">戻る</a>
     </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
         import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
-
         const app = initializeApp({ apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff" });
         const auth = getAuth(app);
         const db = getFirestore(app);
-
         document.getElementById('signup-exec').onclick = async () => {
             const email = document.getElementById('s-email').value;
-            const phone = document.getElementById('s-phone').value;
-            const loginId = document.getElementById('s-id').value;
             const pw = document.getElementById('s-pw').value;
-            if (pw !== document.getElementById('s-pw-conf').value) return alert("パスワードが一致しません。");
-
+            if (pw !== document.getElementById('s-pw-conf').value) return alert("不一致");
             try {
-                // 1. Authユーザー作成
                 const res = await createUserWithEmailAndPassword(auth, email, pw);
-                // 2. Firestoreにユーザー情報を保存 (これが無いとログインIDで入れない)
-                await setDoc(doc(db, "users", res.user.uid), {
-                    email, loginId, phone
-                });
-                alert("アカウントを作成しました。ログインしてください。");
-                window.location.href = "index.html";
-            } catch (e) { alert("エラー: " + e.message); }
+                await setDoc(doc(db, "users", res.user.uid), { email, loginId: document.getElementById('s-id').value, phone: document.getElementById('s-phone').value });
+                alert("作成完了"); window.location.href = "index.html";
+            } catch (e) { alert(e.message); }
         };
     </script>
 </body>
