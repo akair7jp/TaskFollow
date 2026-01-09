@@ -2,40 +2,50 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>TaskFollow - 新規登録</title>
+    <title>TaskFollow - アカウント作成</title>
     <style>
         body { font-family: sans-serif; background: #f8f9fc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); width: 380px; text-align: center; }
-        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #eee; border-radius: 8px; background: #fafafa; box-sizing: border-box; }
+        .card { background: white; padding: 40px; border-radius: 20px; width: 380px; text-align: center; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #eee; border-radius: 8px; box-sizing: border-box; }
         button { background: #5b50f2; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="card">
         <h1 style="color:#5b50f2;">TaskFollow</h1>
-        <input type="email" id="s-email" placeholder="メールアドレス *">
-        <input type="tel" id="s-phone" placeholder="電話番号 (忘却用) *">
-        <input type="text" id="s-id" placeholder="ログインID">
+        <p style="font-size:12px; color:#888;">新規アカウント作成</p>
+        <input type="text" id="s-name" placeholder="ユーザー名 (言語指定なし)">
+        <input type="email" id="s-email" placeholder="メールアドレス * (必須)" required>
+        <input type="tel" id="s-phone" placeholder="電話番号 (パスワード忘れた時用) *">
         <input type="password" id="s-pw" placeholder="パスワード">
         <input type="password" id="s-pw-conf" placeholder="パスワード (再確認)">
-        <button id="signup-exec">新規アカウント作成</button>
-        <a href="index.html" style="display:block; margin-top:20px; color:#888; font-size:13px; text-decoration:none;">戻る</a>
+        <button id="signup-exec">アカウント作成</button>
+        <div style="margin:15px 0; color:#ccc; font-size:12px;">または</div>
+        <button id="g-signup" style="background:white; color:#333; border:1px solid #eee; padding:10px; width:100%; border-radius:8px; cursor:pointer;">Googleアカウントで作成</button>
+        <a href="index.html" style="display:block; margin-top:20px; color:#888; font-size:13px; text-decoration:none;">ログインへ戻る</a>
     </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
         import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
         const app = initializeApp({ apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff" });
         const auth = getAuth(app);
         const db = getFirestore(app);
+
         document.getElementById('signup-exec').onclick = async () => {
             const email = document.getElementById('s-email').value;
             const pw = document.getElementById('s-pw').value;
-            if (pw !== document.getElementById('s-pw-conf').value) return alert("不一致");
+            if (pw !== document.getElementById('s-pw-conf').value) return alert("パスワードが一致しません");
             try {
                 const res = await createUserWithEmailAndPassword(auth, email, pw);
-                await setDoc(doc(db, "users", res.user.uid), { email, loginId: document.getElementById('s-id').value, phone: document.getElementById('s-phone').value });
-                alert("作成完了"); window.location.href = "index.html";
+                await setDoc(doc(db, "users", res.user.uid), {
+                    displayName: document.getElementById('s-name').value,
+                    phone: document.getElementById('s-phone').value,
+                    email: email
+                });
+                window.location.href = "https://akair7jp.github.io/TaskFollow/todo.html";
             } catch (e) { alert(e.message); }
         };
     </script>
