@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <title>TaskFollow - タスク管理</title>
     <style>
-        body { font-family: sans-serif; background: #f5f7ff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); width: 100%; max-width: 400px; text-align: center; }
+        body { font-family: sans-serif; background: #f8f9fc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); width: 380px; text-align: center; }
         h1 { color: #5b50f2; font-size: 32px; margin: 0; }
         .sub { font-size: 13px; color: #888; margin: 10px 0 30px; }
-        label { display: block; text-align: left; font-size: 13px; font-weight: bold; margin-bottom: 5px; }
+        label { display: block; text-align: left; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #555; }
         input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #eee; border-radius: 8px; background: #fafafa; box-sizing: border-box; }
-        button { background: #5b50f2; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .btn-login { background: #5b50f2; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
         .sep { color: #ccc; margin: 20px 0; font-size: 12px; white-space: pre; }
         .g-btn { background: white; border: 1px solid #eee; padding: 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; font-size: 14px; color: #333; }
         .link { color: #888; font-size: 13px; margin-top: 20px; display: block; text-decoration: none; }
@@ -26,9 +26,11 @@
         <label>パスワード</label>
         <input type="password" id="l-pw">
 
-        <button id="login-btn">ログイン</button>
+        <button class="btn-login" id="login-exec">ログイン</button>
 
-        <div class="sep">------------------------------<br>または<br>------------------------------</div>
+        <div class="sep">------------------------------
+または
+------------------------------</div>
 
         <button class="g-btn" id="g-login">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Google でログイン
@@ -42,29 +44,30 @@
         import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
         import { getFirestore, collection, query, where, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff", storageBucket: "taskfollow-b70ff.firebasestorage.app", messagingSenderId: "748569597788", appId: "1:748569597788:web:c631b8e9c50dcf63835399" };
+        const firebaseConfig = { apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        document.getElementById('login-btn').onclick = async () => {
+        document.getElementById('login-exec').onclick = async () => {
             const id = document.getElementById('l-id').value;
             const pw = document.getElementById('l-pw').value;
             if (id === "Admin" && pw === "Admin") return window.location.href = "admin.html";
 
             const q = query(collection(db, "users"), where("loginId", "==", id));
             const snap = await getDocs(q);
-            if (snap.empty) return alert("ユーザーが見つかりません");
+            if (snap.empty) return alert("ログインIDが見つかりません。");
+            
             try {
-                await signInWithEmailAndPassword(auth, snap.docs.data().email, pw);
+                const userDoc = snap.docs.data();
+                await signInWithEmailAndPassword(auth, userDoc.email, pw);
                 window.location.href = "todo.html";
-            } catch (e) { alert("ログイン不可"); }
+            } catch (e) { alert("ログインに失敗しました。パスワードを確認してください。"); }
         };
 
         document.getElementById('g-login').onclick = async () => {
             const res = await signInWithPopup(auth, new GoogleAuthProvider());
-            const loginId = res.user.email.split('@');
-            await setDoc(doc(db, "users", res.user.uid), { email: res.user.email, loginId }, { merge: true });
+            await setDoc(doc(db, "users", res.user.uid), { email: res.user.email, loginId: res.user.email.split('@') }, { merge: true });
             window.location.href = "todo.html";
         };
     </script>
