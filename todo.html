@@ -6,119 +6,188 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        
-        :root { --primary: #5b50f2; --bg: #f8f9fc; }
-        
-        body { 
-            font-family: 'Inter', "San Francisco", "Yu Gothic", "Meiryo", "Hiragino Sans", "Roboto", sans-serif; 
-            background: var(--bg); margin: 0; color: #333; 
-        }
-
+        :root { --p: #5b50f2; --bg: #f8f9fc; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; color: #333; }
+        .rounded-2xl { border-radius: 1.25rem; }
         header { background: white; padding: 15px 40px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .u-area { position: relative; cursor: pointer; font-weight: 600; }
         
-        /* 統計カード [7] */
+        /* ユーザープルダウン */
+        .u-area { position: relative; cursor: pointer; font-weight: 600; }
+        .dropdown { display: none; position: absolute; top: 100%; left: 0; background: white; box-shadow: 0 8px 30px rgba(0,0,0,0.1); border-radius: 1rem; z-index: 1000; min-width: 220px; overflow: hidden; }
+        .u-area:hover .dropdown { display: block; }
+        .dropdown button { width: 100%; border: none; background: none; text-align: left; padding: 12px 20px; cursor: pointer; font-size: 13px; font-family: inherit; border-bottom: 1px solid #f9f9f9; }
+        .dropdown button:hover { background: #f8f9fc; }
+
+        /* 統計カード (日本語) */
         .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 20px 40px; }
-        .stat-card { background: white; padding: 25px; border-radius: 1.25rem; border: 1px solid #eee; display: flex; align-items: center; gap: 15px; }
-        .ic-box { width: 45px; height: 45px; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .stat-card { background: white; padding: 20px; border-radius: 1.25rem; border: 1px solid #eee; display: flex; align-items: center; gap: 15px; }
 
-        /* 一括操作バー [1, 6] */
-        .bulk-bar { display: none; background: var(--primary); color: white; margin: 0 40px 20px; padding: 15px 25px; border-radius: 1rem; justify-content: space-between; align-items: center; }
-        .bulk-btns button { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 8px 15px; border-radius: 0.5rem; cursor: pointer; margin-left: 10px; font-weight: 600; font-family: inherit; }
+        /* 一括操作バー (選択時のみ) */
+        .bulk-bar { display: none; background: var(--p); color: white; margin: 0 40px 20px; padding: 15px 25px; border-radius: 1rem; justify-content: space-between; align-items: center; }
+        .bulk-btns button { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 8px 15px; border-radius: 0.5rem; cursor: pointer; font-family: inherit; font-weight: 600; font-size: 13px; }
 
-        /* タスクカード [8] */
-        .task-card { background: white; padding: 25px; border-radius: 1.25rem; border: 1px solid #eee; margin: 0 40px 15px; }
-        .st-btn { padding: 8px 20px; border-radius: 20px; border: 1px solid #eee; background: white; font-size: 12px; cursor: pointer; color: #999; margin-right: 8px; font-family: inherit; }
-        .st-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        /* タスクカード */
+        .task-card { background: white; padding: 25px; border-radius: 1.5rem; border: 1px solid #eee; margin: 0 40px 15px; }
+        .st-btn { padding: 10px 24px; border-radius: 2rem; border: 1px solid #eee; background: white; cursor: pointer; color: #999; font-size: 13px; font-weight: 600; margin-right: 10px; font-family: inherit; }
+        .st-btn.active { background: var(--p); color: white; border-color: var(--p); }
 
-        /* 指定: 一括登録入力欄 [2] */
-        #bulk-typing-area {
-            width: 100%; height: 200px; padding: 15px; border: 1px solid #eee; border-radius: 0.75rem;
-            background: #fafafa; font-family: monospace; font-size: 14px; line-height: 1.6;
-            box-sizing: border-box; resize: vertical;
-        }
+        /* カレンダービュー */
+        #task-list.grid-view { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; padding: 20px 40px; }
+        .grid-view .task-card { margin: 0; padding: 15px; }
 
-        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 35px; border-radius: 1.5rem; z-index: 1000; box-shadow: 0 20px 80px rgba(0,0,0,0.2); width: 480px; }
+        /* 一括登録エリア */
+        #bulk-typing-area { width: 100%; height: 200px; padding: 15px; border: 1px solid #eee; border-radius: 1rem; background: #fafafa; font-family: monospace; font-size: 14px; box-sizing: border-box; }
+
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 35px; border-radius: 1.5rem; z-index: 2000; box-shadow: 0 20px 80px rgba(0,0,0,0.2); width: 480px; }
         .hidden { display: none; }
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1999; }
     </style>
 </head>
 <body>
     <header>
         <div>
             <h2 style="margin:0;">タスク管理</h2>
-            <div class="u-area" id="user-btn">aaa さん <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="u-area"><span id="u-name">...</span> さん <i class="fa-solid fa-chevron-down" style="font-size:10px;"></i>
+                <div class="dropdown">
+                    <button onclick="alert('メアド変更')"><i class="fa-solid fa-envelope"></i> メールアドレス変更</button>
+                    <button onclick="alert('電話番号変更')"><i class="fa-solid fa-phone"></i> 電話番号変更</button>
+                    <button onclick="alert('パスワード変更')"><i class="fa-solid fa-key"></i> パスワード変更</button>
+                    <button onclick="alert('ユーザ名変更')"><i class="fa-solid fa-user-edit"></i> ユーザ名変更</button>
+                    <button id="logout-btn" style="color:#ff4d4d;"><i class="fa-solid fa-right-from-bracket"></i> ログアウト</button>
+                </div>
+            </div>
         </div>
         <div style="display:flex; gap:10px;">
             <button onclick="openM('import')"><i class="fa-solid fa-file-import"></i> インポート</button>
             <button onclick="openM('bulk')"><i class="fa-solid fa-list-check"></i> 一括登録</button>
-            <button onclick="openM('new')" style="background:var(--primary); color:white; border:none; font-weight:700;">+ 新規タスク</button>
+            <button onclick="openM('new')" style="background:var(--p); color:white; border:none; padding:12px 24px; border-radius:10px; font-weight:700;">+ 新規タスク</button>
         </div>
     </header>
 
     <div class="stats">
-        <div class="stat-card"><div class="ic-box" style="background:#f0efff; color:var(--primary);"><i class="fa-solid fa-list-ul"></i></div><div><b>1</b><br><small>合計</small></div></div>
-        <div class="stat-card"><div class="ic-box" style="background:#fff7ed; color:#f97316;"><i class="fa-solid fa-circle-exclamation"></i></div><div><b>1</b><br><small>未着手</small></div></div>
-        <div class="stat-card"><div class="ic-box" style="background:#f0f9ff; color:#0ea5e9;"><i class="fa-solid fa-spinner"></i></div><div><b>0</b><br><small>進行中</small></div></div>
-        <div class="stat-card"><div class="ic-box" style="background:#f0fdf4; color:#22c55e;"><i class="fa-solid fa-circle-check"></i></div><div><b>0</b><br><small>完了</small></div></div>
+        <div class="stat-card"><div style="background:#f0efff; color:var(--p); width:40px; height:40px; display:flex; align-items:center; justify-content:center; border-radius:10px;"><i class="fa-solid fa-list"></i></div><div><b id="c-all">0</b><br><small>合計</small></div></div>
+        <div class="stat-card"><div style="background:#fff7ed; color:#f97316; width:40px; height:40px; display:flex; align-items:center; justify-content:center; border-radius:10px;"><i class="fa-solid fa-circle-exclamation"></i></div><div><b id="c-un">0</b><br><small>未着手</small></div></div>
+        <div class="stat-card"><div style="background:#f0f9ff; color:#0ea5e9; width:40px; height:40px; display:flex; align-items:center; justify-content:center; border-radius:10px;"><i class="fa-solid fa-spinner"></i></div><div><b id="c-ing">0</b><br><small>進行中</small></div></div>
+        <div class="stat-card"><div style="background:#f0fdf4; color:#22c55e; width:40px; height:40px; display:flex; align-items:center; justify-content:center; border-radius:10px;"><i class="fa-solid fa-circle-check"></i></div><div><b id="c-fin">0</b><br><small>完了</small></div></div>
     </div>
 
     <div class="bulk-bar" id="bulk-ui">
-        <div><button onclick="selectAll()">すべて選択</button> <span id="sel-txt">1 件選択中</span></div>
-        <div class="bulk-btns">
-            <button onclick="bulkStatus()"><i class="fa-solid fa-rotate"></i> 状態変更</button>
-            <button onclick="bulkCopy()"><i class="fa-solid fa-copy"></i> 一括複製</button>
-            <button onclick="bulkDel()" style="background:#ff4d4d; border:none;"><i class="fa-solid fa-trash"></i> 一括削除</button>
+        <div><button onclick="selectAll()" style="background:none; border:1px solid white; color:white; padding:5px 12px; border-radius:5px; cursor:pointer;">すべて選択</button> <span id="sel-txt" style="margin-left:15px; font-weight:700;">0 件選択中</span></div>
+        <div class="bulk-btns" style="display:flex; gap:10px;">
+            <select id="bulk-st-sel" style="background:none; border:1px solid white; color:white; border-radius:5px; padding:5px;"><option>状態変更</option><option>未着手</option><option>進行中</option><option>完了</option></select>
+            <button onclick="bulkCopy()">一括複製</button>
+            <button onclick="bulkDel()" style="background:#ff4d4d; border:none;">一括削除</button>
         </div>
     </div>
 
-    <div id="task-list">
-        <div class="task-card">
-            <div style="font-size:18px; font-weight:700;"><input type="checkbox" checked onchange="toggleBulk()"> てすと</div>
-            <div style="margin: 10px 0 15px 30px; font-size:12px; color:#888; display:flex; gap:15px; align-items:center;">
-                <span><i class="fa-solid fa-flag" style="color:#ff4d4d; margin-right:5px;"></i> 高</span>
-                <span style="background:#f0efff; color:var(--primary); padding:2px 8px; border-radius:6px; font-weight:700;">仕事</span>
-                <span><i class="fa-solid fa-clock"></i> 期限なし</span>
-            </div>
-            <div style="margin-left:30px;">
-                <button class="st-btn active">未着手</button>
-                <button class="st-btn">進行中</button>
-                <button class="st-btn">完了</button>
-            </div>
+    <div style="padding:0 40px 15px; display:flex; gap:12px; align-items:center;">
+        <select id="f-st"><option value="">全ステータス</option><option>未着手</option><option>進行中</option><option>完了</option></select>
+        <select id="f-pri"><option value="">全優先度</option><option>高</option><option>中</option><option>低</option></select>
+        <select id="f-cat"><option value="">全カテゴリー</option></select>
+        <select id="f-sort"><option value="pri">優先度順</option><option value="date">期限順</option></select>
+        <div style="margin-left:auto; background:#eee; padding:3px; border-radius:8px;">
+            <button id="v-list" onclick="setView('list')" style="border:none; padding:8px 15px; border-radius:6px; background:white; cursor:pointer;">リスト</button>
+            <button id="v-cal" onclick="setView('cal')" style="border:none; padding:8px 15px; border-radius:6px; background:none; cursor:pointer; color:#888;">カレンダー</button>
         </div>
     </div>
+
+    <div id="task-list"></div>
 
     <div id="overlay" class="overlay hidden" onclick="closeAll()"></div>
-
-    <!-- 一括登録モーダル [2] -->
-    <div id="bulk-modal" class="modal hidden">
-        <h3><i class="fa-solid fa-list-check"></i> スマート一括登録</h3>
-        <p style="font-size:12px; color:#666; margin-bottom:15px;">
-            1行に1タスクを「タイトル, 内容, 優先度, カテゴリ, 期限(MMDD)」の形式で入力してください。
-        </p>
-        <textarea id="bulk-typing-area" placeholder="タスク1, 内容, 高, 仕事, 0520"></textarea>
-        <div style="display:flex; gap:10px; margin-top:20px;">
-            <button onclick="closeAll()" style="flex:1;">キャンセル</button>
-            <button onclick="closeAll()" style="flex:1; background:var(--primary); color:white; border:none; border-radius:0.75rem; font-weight:700;">一括登録を実行</button>
+    
+    <!-- 新規タスクモーダル -->
+    <div id="new-modal" class="modal hidden">
+        <h3 style="margin-top:0;">新規タスク</h3>
+        <input type="text" id="t-title" placeholder="タスク名を入力..." style="width:100%; padding:14px; border:1px solid #eee; border-radius:10px; margin-bottom:15px; box-sizing:border-box;">
+        <div style="display:flex; gap:15px; margin-bottom:15px;">
+            <select id="t-pri-val" style="flex:1; padding:12px; border-radius:10px; border:1px solid #eee;"><option>高</option><option selected>中</option><option>低</option></select>
+            <input type="text" id="t-cat-val" placeholder="カテゴリー" style="flex:1; padding:12px; border-radius:10px; border:1px solid #eee;">
+        </div>
+        <div style="background:#f9f9fc; padding:20px; border-radius:15px; border:1px solid #eee;">
+            <label style="font-weight:700;"><input type="checkbox" id="t-limit-on" checked> 期限を設ける</label>
+            <div style="margin-top:15px;">
+                <small style="color:#888;">スマート入力 (MMDD)</small>
+                <input type="text" id="t-mmdd" placeholder="0520" style="width:100%; padding:10px; margin:5px 0 10px; border:1px solid #eee; border-radius:8px;">
+                <small style="color:#888;">カレンダーから選択</small>
+                <input type="date" id="t-date" style="width:100%; padding:10px; border:1px solid #eee; border-radius:8px;">
+            </div>
+        </div>
+        <div style="display:flex; gap:15px; margin-top:25px;">
+            <button onclick="closeAll()" style="flex:1; padding:14px; border:none; background:#eee; border-radius:10px; cursor:pointer;">キャンセル</button>
+            <button onclick="saveTask()" style="flex:1; padding:14px; border:none; background:var(--p); color:white; font-weight:700; border-radius:10px; cursor:pointer;">保存</button>
         </div>
     </div>
 
-    <script>
-        function openM(type) {
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, deleteDoc, getDoc, orderBy } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+        const db = getFirestore(initializeApp({ apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff" }));
+        const auth = getAuth();
+        let userNow = null;
+
+        onAuthStateChanged(auth, async (u) => {
+            if (!u) window.location.href = "index.html";
+            userNow = u;
+            const uDoc = await getDoc(doc(db, "users", u.uid));
+            document.getElementById('u-name').innerText = uDoc.data()?.displayName || u.email.split('@');
+            initApp();
+        });
+
+        window.openM = (type) => { 
             document.getElementById('overlay').classList.remove('hidden');
-            if(type==='bulk') document.getElementById('bulk-modal').classList.remove('hidden');
+            if(type==='new') document.getElementById('new-modal').classList.remove('hidden');
+        };
+        window.closeAll = () => document.querySelectorAll('.modal, .overlay').forEach(el => el.classList.add('hidden'));
+
+        window.saveTask = async () => {
+            const hasL = document.getElementById('t-limit-on').checked;
+            const date = hasL ? (document.getElementById('t-date').value || "期限なし") : "期限なし";
+            await addDoc(collection(db, "tasks"), { uid: userNow.uid, title: document.getElementById('t-title').value, priority: document.getElementById('t-pri-val').value, category: document.getElementById('t-cat-val').value || "なし", date, status: "未着手", createdAt: new Date() });
+            closeAll();
+        };
+
+        function initApp() {
+            const q = query(collection(db, "tasks"), where("uid", "==", userNow.uid), orderBy("createdAt", "desc"));
+            onSnapshot(q, (snap) => {
+                const list = document.getElementById('task-list');
+                list.innerHTML = "";
+                let counts = { all: snap.size, un: 0, ing: 0, fin: 0 };
+                snap.forEach(d => {
+                    const t = d.data();
+                    if(t.status === "未着手") counts.un++; else if(t.status === "進行中") counts.ing++; else counts.fin++;
+                    list.innerHTML += `
+                        <div class="task-card">
+                            <div style="font-size:20px; font-weight:700;"><input type="checkbox" class="t-sel" data-id="${d.id}" onchange="upBulk()"> ${t.title}</div>
+                            <div style="margin: 12px 0 20px 30px; font-size:12px; color:#888; display:flex; gap:15px; align-items:center;">
+                                <span><i class="fa-solid fa-flag" style="color:#ff4d4d; margin-right:5px;"></i>${t.priority}</span>
+                                <span style="background:#f0efff; color:var(--p); padding:2px 10px; border-radius:6px; font-weight:700;">${t.category}</span>
+                                <span>🕒 ${t.date}</span>
+                            </div>
+                            <div style="margin-left:30px;">
+                                <button class="st-btn ${t.status=='未着手'?'active':''}" onclick="upSt('${d.id}','未着手')">未着手</button>
+                                <button class="st-btn ${t.status=='進行中'?'active':''}" onclick="upSt('${d.id}','進行中')">進行中</button>
+                                <button class="st-btn ${t.status=='完了'?'active':''}" onclick="upSt('${d.id}','完了')">完了</button>
+                                <button onclick="delT('${d.id}')" style="float:right; border:none; background:none; color:red; cursor:pointer;">削除</button>
+                                <button onclick="copyT('${d.id}')" style="float:right; border:none; background:none; color:#888; cursor:pointer; margin-right:15px;">複製</button>
+                            </div>
+                        </div>`;
+                });
+                document.getElementById('c-all').innerText = counts.all;
+                document.getElementById('c-un').innerText = counts.un;
+                document.getElementById('c-ing').innerText = counts.ing;
+                document.getElementById('c-fin').innerText = counts.fin;
+            });
         }
-        function closeAll() {
-            document.querySelectorAll('.modal, .overlay').forEach(el => el.classList.add('hidden'));
-        }
-        function toggleBulk() {
-            const count = document.querySelectorAll('input[type="checkbox"]:checked').length;
-            const bar = document.getElementById('bulk-ui');
-            bar.style.display = count > 0 ? 'flex' : 'none';
-            document.getElementById('sel-txt').innerText = `${count} 件選択中`;
-        }
-        // 初期状態で表示を確認するための呼び出し
-        toggleBulk();
+
+        window.upSt = async (id, st) => await updateDoc(doc(db, "tasks", id), { status: st });
+        window.upBulk = () => {
+            const n = document.querySelectorAll('.t-sel:checked').length;
+            document.getElementById('bulk-ui').style.display = n > 0 ? 'flex' : 'none';
+            document.getElementById('sel-txt').innerText = `${n} 件選択中`;
+        };
+        document.getElementById('logout-btn').onclick = () => signOut(auth).then(() => window.location.href="index.html");
     </script>
 </body>
 </html>
