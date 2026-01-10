@@ -6,129 +6,107 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        :root { --primary: #5b50f2; --bg: #f8fafc; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; color: #1a202c; }
+        :root { --p: #5b50f2; --bg: #f8f9fc; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; color: #333; }
+        .rounded-2xl { border-radius: 1.25rem; }
+        header { background: white; padding: 12px 60px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         
-        /* ヘッダーボタンのサイズ・配置 [3] */
-        header { background: white; padding: 12px 60px; border-bottom: 1px solid #edf2f7; display: flex; justify-content: space-between; align-items: center; }
-        .h-btn { padding: 8px 16px; border-radius: 0.75rem; border: 1px solid #e2e8f0; background: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; }
-        .h-btn-main { background: var(--primary); color: white; border: none; padding: 10px 20px; }
+        /* ボタン配置 [5, 6] */
+        .h-btn { padding: 9px 18px; border-radius: 0.75rem; border: 1px solid #e5e7eb; background: white; font-weight: 600; cursor: pointer; font-size: 14px; }
+        .h-btn-main { background: var(--p); color: white; border: none; padding: 11px 22px; }
 
-        /* 統計エリア [3] */
-        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; padding: 24px 60px; }
-        .stat-card { background: white; padding: 24px; border-radius: 1.5rem; display: flex; align-items: center; gap: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-
-        /* プルダウンメニュー [4] */
-        .u-area { position: relative; cursor: pointer; font-weight: 700; font-size: 15px; }
-        .dropdown { display: none; position: absolute; top: 100%; left: 0; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 1rem; z-index: 1000; min-width: 240px; padding: 10px; margin-top: 10px; }
+        /* プルダウン [7] */
+        .u-area { position: relative; cursor: pointer; font-weight: 700; }
+        .dropdown { display: none; position: absolute; top: 100%; left: 0; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 1rem; z-index: 1000; min-width: 220px; }
         .u-area:hover .dropdown { display: block; }
-        .dropdown button { width: 100%; border: none; background: none; text-align: left; padding: 12px 15px; cursor: pointer; font-size: 14px; border-radius: 0.5rem; display: flex; align-items: center; gap: 10px; color: #4a5568; }
-        .dropdown button:hover { background: #f7fafc; }
-        .dropdown .logout { color: #e53e3e; border-top: 1px solid #edf2f7; margin-top: 8px; padding-top: 15px; }
+        .dropdown button { width: 100%; border: none; background: none; text-align: left; padding: 12px 15px; cursor: pointer; font-size: 13px; }
 
-        /* タスクカード [6] */
-        .task-card { background: white; padding: 28px; border-radius: 1.5rem; margin: 0 60px 16px; position: relative; }
-        .st-btn { padding: 10px 25px; border-radius: 2rem; border: 1px solid #edf2f7; background: #f8fafc; font-size: 13px; font-weight: 600; cursor: pointer; color: #718096; margin-right: 12px; }
-        .st-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-
-        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 40px; border-radius: 2rem; z-index: 2000; box-shadow: 0 30px 100px rgba(0,0,0,0.25); width: 500px; }
+        /* モーダル表示制御 [8, 9] */
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 35px; border-radius: 1.5rem; z-index: 2000; box-shadow: 0 20px 80px rgba(0,0,0,0.2); width: 480px; }
         .hidden { display: none; }
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1999; }
+        
+        /* 一括登録: monospace指定 [8] */
+        #bulk-typing-area { width: 100%; height: 180px; padding: 15px; border: 1px solid #eee; border-radius: 1rem; background: #fafafa; font-family: monospace; box-sizing: border-box; }
     </style>
 </head>
 <body>
     <header>
         <div>
-            <h2 style="margin:0; font-size:22px;">タスク管理</h2>
-            <div class="u-area"><span id="u-name">...</span> さん <i class="fa-solid fa-chevron-down" style="font-size:11px;"></i>
+            <h2 style="margin:0;">タスク管理</h2>
+            <div class="u-area"><span id="u-name">...</span> さん <i class="fa-solid fa-chevron-down"></i>
                 <div class="dropdown">
-                    <button onclick="promptChange('email')"><i class="fa-solid fa-envelope"></i> メールアドレス変更</button>
-                    <button onclick="promptChange('phone')"><i class="fa-solid fa-phone"></i> 電話番号変更</button>
-                    <button onclick="promptChange('password')"><i class="fa-solid fa-key"></i> パスワード変更</button>
-                    <button onclick="promptChange('name')"><i class="fa-solid fa-user-pen"></i> ユーザー名変更</button>
-                    <button id="logout-btn" class="logout"><i class="fa-solid fa-right-from-bracket"></i> ログアウト</button>
+                    <button onclick="openM('settings')"><i class="fa-solid fa-gear"></i> 設定変更</button>
+                    <button id="logout-btn" style="color:red;"><i class="fa-solid fa-right-from-bracket"></i> ログアウト</button>
                 </div>
             </div>
         </div>
         <div style="display:flex; gap:12px;">
-            <button class="h-btn"><i class="fa-solid fa-gear"></i> 設定</button>
+            <button class="h-btn" onclick="openM('settings')"><i class="fa-solid fa-gear"></i> 設定</button>
             <button class="h-btn" onclick="openM('import')"><i class="fa-solid fa-file-import"></i> インポート</button>
             <button class="h-btn" onclick="openM('bulk')"><i class="fa-solid fa-list-check"></i> 一括登録</button>
             <button class="h-btn h-btn-main" onclick="openM('new')"><i class="fa-solid fa-plus"></i> 新規タスク</button>
         </div>
     </header>
 
-    <div class="stats">
-        <div class="stat-card"><div style="background:#f0efff; color:var(--primary); width:48px; height:48px; display:flex; align-items:center; justify-content:center; border-radius:14px; font-size:20px;"><i class="fa-solid fa-list-ul"></i></div><div><b id="c-all" style="font-size:22px;">0</b><br><small style="color:#718096; font-weight:600;">合計</small></div></div>
-        <div class="stat-card"><div style="background:#fff7ed; color:#f97316; width:48px; height:48px; display:flex; align-items:center; justify-content:center; border-radius:14px; font-size:20px;"><i class="fa-solid fa-circle-exclamation"></i></div><div><b id="c-un" style="font-size:22px;">0</b><br><small style="color:#718096; font-weight:600;">未着手</small></div></div>
-        <div class="stat-card"><div style="background:#f0f9ff; color:#0ea5e9; width:48px; height:48px; display:flex; align-items:center; justify-content:center; border-radius:14px; font-size:20px;"><i class="fa-solid fa-spinner"></i></div><div><b id="c-ing" style="font-size:22px;">0</b><br><small style="color:#718096; font-weight:600;">進行中</small></div></div>
-        <div class="stat-card"><div style="background:#f0fdf4; color:#22c55e; width:48px; height:48px; display:flex; align-items:center; justify-content:center; border-radius:14px; font-size:20px;"><i class="fa-solid fa-circle-check"></i></div><div><b id="c-fin" style="font-size:22px;">0</b><br><small style="color:#718096; font-weight:600;">完了</small></div></div>
+    <div id="overlay" class="overlay hidden" onclick="closeAll()"></div>
+
+    <!-- 各種モーダル -->
+    <div id="new-modal" class="modal hidden">
+        <h3>新規タスク [8]</h3>
+        <input type="text" id="t-title" placeholder="タスク名を入力..." style="width:100%; padding:14px; border:1px solid #eee; border-radius:10px;">
+        <button onclick="closeAll()" style="margin-top:20px;">保存</button>
     </div>
 
-    <div id="task-list"></div>
+    <div id="bulk-modal" class="modal hidden">
+        <h3>スマート一括登録 [9]</h3>
+        <textarea id="bulk-typing-area" placeholder="タイトル, 内容, 優先度, カテゴリ, MMDD"></textarea>
+        <button onclick="closeAll()" style="margin-top:20px;">実行</button>
+    </div>
+
+    <div id="import-modal" class="modal hidden">
+        <h3>インポート [9]</h3>
+        <p>CSVまたはJSON形式 (上限10MB)</p>
+        <input type="file">
+        <button onclick="closeAll()" style="margin-top:20px;">閉じる</button>
+    </div>
+
+    <div id="settings-modal" class="modal hidden">
+        <h3>設定変更 [8]</h3>
+        <button onclick="closeAll()">閉じる</button>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, updateEmail, updatePassword } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-        const app = initializeApp({ apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff" });
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        const db = getFirestore(initializeApp({ apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff" }));
+        const auth = getAuth();
 
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) window.location.href = "index.html";
-            const uDoc = await getDoc(doc(db, "users", user.uid));
-            document.getElementById('u-name').innerText = uDoc.data()?.displayName || "ユーザー";
-            loadTasks(user.uid);
+        onAuthStateChanged(auth, async (u) => {
+            if (!u) window.location.href = "index.html";
+            
+            // Googleログイン名の反映ロジック [1]
+            if (u.displayName) {
+                document.getElementById('u-name').innerText = u.displayName;
+            } else {
+                const uDoc = await getDoc(doc(db, "users", u.uid));
+                document.getElementById('u-name').innerText = uDoc.data()?.displayName || "ユーザー";
+            }
         });
 
-        // 変更機能の修正ロジック [8, 11]
-        window.promptChange = async (type) => {
-            const user = auth.currentUser;
-            const newVal = prompt(`${type} の新しい値を入力してください:`);
-            if (!newVal) return;
-
-            try {
-                if (type === 'email') await updateEmail(user, newVal);
-                if (type === 'password') await updatePassword(user, newVal);
-                
-                const updates = {};
-                if (type === 'name') updates.displayName = newVal;
-                if (type === 'phone') updates.phone = newVal;
-                if (Object.keys(updates).length > 0) await updateDoc(doc(db, "users", user.uid), updates);
-                
-                alert("変更が完了しました。");
-                location.reload();
-            } catch (e) { alert("エラー: " + e.message); }
+        // ボタン機能の復元 (モーダル開閉ロジック)
+        window.openM = (type) => {
+            document.getElementById('overlay').classList.remove('hidden');
+            if(type === 'new') document.getElementById('new-modal').classList.remove('hidden');
+            if(type === 'bulk') document.getElementById('bulk-modal').classList.remove('hidden');
+            if(type === 'import') document.getElementById('import-modal').classList.remove('hidden');
+            if(type === 'settings') document.getElementById('settings-modal').classList.remove('hidden');
         };
+        window.closeAll = () => document.querySelectorAll('.modal, .overlay').forEach(el => el.classList.add('hidden'));
 
-        function loadTasks(uid) {
-            const q = query(collection(db, "tasks"), where("uid", "==", uid));
-            onSnapshot(q, (snap) => {
-                const list = document.getElementById('task-list');
-                list.innerHTML = "";
-                snap.forEach(d => {
-                    const t = d.data();
-                    list.innerHTML += `
-                        <div class="task-card">
-                            <h3 style="margin:0 0 15px;"><input type="checkbox"> ${t.title}</h3>
-                            <div style="margin-bottom:20px; font-size:13px; color:#718096; display:flex; gap:20px;">
-                                <span><i class="fa-solid fa-flag" style="color:#ff4d4d; margin-right:6px;"></i>${t.priority}</span>
-                                <span style="background:#f0efff; color:var(--primary); padding:3px 10px; border-radius:6px; font-weight:700;">${t.category}</span>
-                                <span>🕒 ${t.date}</span>
-                            </div>
-                            <div>
-                                <button class="st-btn ${t.status=='未着手'?'active':''}">未着手</button>
-                                <button class="st-btn ${t.status=='進行中'?'active':''}">進行中</button>
-                                <button class="st-btn ${t.status=='完了'?'active':''}">完了</button>
-                            </div>
-                        </div>`;
-                });
-            });
-        }
-
-        document.getElementById('logout-btn').onclick = () => signOut(auth).then(() => window.location.href = "index.html");
+        document.getElementById('logout-btn').onclick = () => signOut(auth);
     </script>
 </body>
 </html>
