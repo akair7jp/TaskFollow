@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>TaskFollow - アカウント作成</title>
+    <title>TaskFollow - 新規登録</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background: #f8f9fc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
@@ -13,14 +13,32 @@
 </head>
 <body>
     <div class="card">
-        <h1 style="color:#5b50f2; margin-bottom: 25px;">TaskFollow</h1>
-        <input type="text" id="s-name" placeholder="ユーザー名">
-        <input type="email" id="s-email" placeholder="メールアドレス *">
-        <input type="tel" id="s-phone" placeholder="電話番号 (忘却用) *">
+        <h1 style="color:#5b50f2; margin-bottom:20px;">TaskFollow</h1>
+        <input type="text" id="s-name" placeholder="ユーザー名 (全言語対応)">
+        <input type="email" id="s-email" placeholder="メールアドレス * (必須)" required>
+        <input type="tel" id="s-phone" placeholder="電話番号 (パスワード忘れた時用)">
         <input type="password" id="s-pw" placeholder="パスワード">
         <input type="password" id="s-pw-conf" placeholder="パスワード (再確認)">
-        <button id="signup-exec">新規アカウント作成</button>
-        <a href="index.html" style="display:block; margin-top:20px; color:#888; font-size:13px; text-decoration:none;">ログインへ戻る</a>
+        <button id="signup-exec">アカウント作成</button>
+        <a href="index.html" style="display:block; margin-top:20px; color:#888; font-size:13px; text-decoration:none;">戻る</a>
     </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+        const app = initializeApp({ apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff" });
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        document.getElementById('signup-exec').onclick = async () => {
+            const email = document.getElementById('s-email').value;
+            const pw = document.getElementById('s-pw').value;
+            if (pw !== document.getElementById('s-pw-conf').value) return alert("不一致");
+            try {
+                const res = await createUserWithEmailAndPassword(auth, email, pw);
+                await setDoc(doc(db, "users", res.user.uid), { displayName: document.getElementById('s-name').value, phone: document.getElementById('s-phone').value });
+                window.location.href = "https://akair7jp.github.io/TaskFollow/todo.html";
+            } catch (e) { alert(e.message); }
+        };
+    </script>
 </body>
 </html>
