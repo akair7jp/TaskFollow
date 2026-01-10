@@ -8,36 +8,39 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         :root { --p: #5b50f2; --bg: #f8f9fc; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; color: #333; }
-        .rounded-2xl { border-radius: 1.25rem; }
-        header { background: white; padding: 12px 60px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         
-        /* ボタン配置 [5, 6] */
-        .h-btn { padding: 9px 18px; border-radius: 0.75rem; border: 1px solid #e5e7eb; background: white; font-weight: 600; cursor: pointer; font-size: 14px; }
+        /* ヘッダー・ボタン設定 [ソース あ２] */
+        header { background: white; padding: 12px 60px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .h-btn { padding: 9px 18px; border-radius: 0.75rem; border: 1px solid #e5e7eb; background: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; }
         .h-btn-main { background: var(--p); color: white; border: none; padding: 11px 22px; }
 
-        /* プルダウン [7] */
+        /* プルダウンメニュー [ソース 47] */
         .u-area { position: relative; cursor: pointer; font-weight: 700; }
-        .dropdown { display: none; position: absolute; top: 100%; left: 0; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 1rem; z-index: 1000; min-width: 220px; }
+        .dropdown { display: none; position: absolute; top: 100%; left: 0; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 1rem; z-index: 1000; min-width: 240px; padding: 10px; margin-top: 10px; }
         .u-area:hover .dropdown { display: block; }
-        .dropdown button { width: 100%; border: none; background: none; text-align: left; padding: 12px 15px; cursor: pointer; font-size: 13px; }
+        .dropdown button { width: 100%; border: none; background: none; text-align: left; padding: 12px 15px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; border-radius: 0.5rem; }
+        .dropdown button:hover { background: #f3f4f6; }
 
-        /* モーダル表示制御 [8, 9] */
-        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 35px; border-radius: 1.5rem; z-index: 2000; box-shadow: 0 20px 80px rgba(0,0,0,0.2); width: 480px; }
+        /* モーダル (ポップアップ廃止・カスタムUI化) [ソース 44] */
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 40px; border-radius: 2rem; z-index: 2000; box-shadow: 0 30px 100px rgba(0,0,0,0.2); width: 480px; }
         .hidden { display: none; }
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1999; }
         
-        /* 一括登録: monospace指定 [8] */
-        #bulk-typing-area { width: 100%; height: 180px; padding: 15px; border: 1px solid #eee; border-radius: 1rem; background: #fafafa; font-family: monospace; box-sizing: border-box; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 0.75rem; background: #fafafa; font-family: inherit; box-sizing: border-box; }
+        #bulk-typing-area { height: 180px; font-family: monospace; }
     </style>
 </head>
 <body>
     <header>
         <div>
             <h2 style="margin:0;">タスク管理</h2>
-            <div class="u-area"><span id="u-name">...</span> さん <i class="fa-solid fa-chevron-down"></i>
+            <div class="u-area"><span id="u-name">...</span> さん <i class="fa-solid fa-chevron-down" style="font-size:10px;"></i>
                 <div class="dropdown">
-                    <button onclick="openM('settings')"><i class="fa-solid fa-gear"></i> 設定変更</button>
-                    <button id="logout-btn" style="color:red;"><i class="fa-solid fa-right-from-bracket"></i> ログアウト</button>
+                    <button onclick="openEdit('email')"><i class="fa-solid fa-envelope"></i> メールアドレス変更</button>
+                    <button onclick="openEdit('phone')"><i class="fa-solid fa-phone"></i> 電話番号変更</button>
+                    <button onclick="openEdit('password')"><i class="fa-solid fa-key"></i> パスワード変更</button>
+                    <button onclick="openEdit('name')"><i class="fa-solid fa-user-pen"></i> ユーザー名変更</button>
+                    <button id="logout-btn" style="color:#ef4444; border-top:1px solid #f9f9f9; padding-top:15px;"><i class="fa-solid fa-right-from-bracket"></i> ログアウト</button>
                 </div>
             </div>
         </div>
@@ -51,61 +54,95 @@
 
     <div id="overlay" class="overlay hidden" onclick="closeAll()"></div>
 
-    <!-- 各種モーダル -->
-    <div id="new-modal" class="modal hidden">
-        <h3>新規タスク [8]</h3>
-        <input type="text" id="t-title" placeholder="タスク名を入力..." style="width:100%; padding:14px; border:1px solid #eee; border-radius:10px;">
-        <button onclick="closeAll()" style="margin-top:20px;">保存</button>
+    <!-- 設定変更モーダル (ポップアップ代わり) -->
+    <div id="edit-modal" class="modal hidden">
+        <h3 id="edit-title" style="margin-top:0;">設定の更新</h3>
+        <p id="edit-desc" style="font-size:12px; color:#888;">新しい値を入力して更新してください。</p>
+        <input type="text" id="edit-input" style="margin:20px 0;">
+        <div style="display:flex; gap:12px;">
+            <button onclick="closeAll()" style="flex:1; border:none; padding:12px; border-radius:10px;">中止</button>
+            <button id="edit-save-btn" style="flex:1; background:var(--p); color:white; border:none; padding:12px; border-radius:10px; font-weight:700;">更新する</button>
+        </div>
     </div>
 
-    <div id="bulk-modal" class="modal hidden">
-        <h3>スマート一括登録 [9]</h3>
-        <textarea id="bulk-typing-area" placeholder="タイトル, 内容, 優先度, カテゴリ, MMDD"></textarea>
-        <button onclick="closeAll()" style="margin-top:20px;">実行</button>
-    </div>
-
+    <!-- インポートモーダル -->
     <div id="import-modal" class="modal hidden">
-        <h3>インポート [9]</h3>
-        <p>CSVまたはJSON形式 (上限10MB)</p>
-        <input type="file">
-        <button onclick="closeAll()" style="margin-top:20px;">閉じる</button>
+        <h3>タスクのインポート</h3>
+        <p style="font-size:12px; color:#888;">CSV または JSON形式 のファイルをアップロードしてください (上限10MB)。 [9, 10]</p>
+        <input type="file" style="margin:20px 0;">
+        <button onclick="closeAll()" style="width:100%; padding:14px; background:var(--p); color:white; border:none; border-radius:10px;">閉じる</button>
     </div>
 
-    <div id="settings-modal" class="modal hidden">
-        <h3>設定変更 [8]</h3>
-        <button onclick="closeAll()">閉じる</button>
+    <!-- 一括登録モーダル -->
+    <div id="bulk-modal" class="modal hidden">
+        <h3>スマート一括登録</h3>
+        <textarea id="bulk-typing-area" placeholder="タイトル, 内容, 優先度(高/中/低), カテゴリ, MMDD"></textarea>
+        <button onclick="closeAll()" style="width:100%; padding:14px; background:var(--p); color:white; border:none; border-radius:10px; margin-top:15px;">一括登録を実行</button>
+    </div>
+
+    <!-- 新規作成モーダル -->
+    <div id="new-modal" class="modal hidden">
+        <h3 style="margin-top:0;">タスクの作成 [10]</h3>
+        <input type="text" id="t-title" placeholder="タイトル" style="margin-bottom:15px;">
+        <div style="display:flex; gap:12px; margin-bottom:15px;">
+            <select style="flex:1;"><option>優先度: 高</option><option selected>優先度: 中</option><option>優先度: 低</option></select>
+            <input type="text" placeholder="カテゴリー" style="flex:1;">
+        </div>
+        <div style="background:#f9f9fc; padding:20px; border-radius:1.5rem; border:1px solid #eee;">
+            <label style="font-weight:700;"><input type="checkbox" checked> 期限を設ける</label>
+            <input type="text" placeholder="スマート入力 (MMDD)" style="margin-top:15px;">
+        </div>
+        <button onclick="closeAll()" style="width:100%; padding:16px; background:var(--p); color:white; border:none; border-radius:1rem; font-weight:700; margin-top:20px;">タスクを保存</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut, updateEmail, updatePassword } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-        const db = getFirestore(initializeApp({ apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff" }));
-        const auth = getAuth();
+        const app = initializeApp({ apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff" });
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        onAuthStateChanged(auth, async (u) => {
-            if (!u) window.location.href = "index.html";
-            
-            // Googleログイン名の反映ロジック [1]
-            if (u.displayName) {
-                document.getElementById('u-name').innerText = u.displayName;
-            } else {
-                const uDoc = await getDoc(doc(db, "users", u.uid));
-                document.getElementById('u-name').innerText = uDoc.data()?.displayName || "ユーザー";
-            }
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) window.location.href = "index.html";
+            const uDoc = await getDoc(doc(db, "users", user.uid));
+            document.getElementById('u-name').innerText = uDoc.data()?.displayName || user.displayName || "ユーザー";
         });
 
-        // ボタン機能の復元 (モーダル開閉ロジック)
+        // モーダル制御ロジック (ポップアップ廃止対応)
         window.openM = (type) => {
             document.getElementById('overlay').classList.remove('hidden');
             if(type === 'new') document.getElementById('new-modal').classList.remove('hidden');
-            if(type === 'bulk') document.getElementById('bulk-modal').classList.remove('hidden');
             if(type === 'import') document.getElementById('import-modal').classList.remove('hidden');
-            if(type === 'settings') document.getElementById('settings-modal').classList.remove('hidden');
+            if(type === 'bulk') document.getElementById('bulk-modal').classList.remove('hidden');
+            if(type === 'settings') document.getElementById('edit-modal').classList.remove('hidden');
         };
-        window.closeAll = () => document.querySelectorAll('.modal, .overlay').forEach(el => el.classList.add('hidden'));
 
+        window.openEdit = (field) => {
+            const labels = { email: "メールアドレス変更", phone: "電話番号変更", password: "パスワード変更", name: "ユーザー名変更" };
+            document.getElementById('edit-title').innerText = labels[field];
+            document.getElementById('edit-input').type = (field === 'password') ? 'password' : 'text';
+            document.getElementById('edit-input').value = "";
+            document.getElementById('overlay').classList.remove('hidden');
+            document.getElementById('edit-modal').classList.remove('hidden');
+
+            document.getElementById('edit-save-btn').onclick = async () => {
+                const val = document.getElementById('edit-input').value;
+                try {
+                    if (field === 'email') await updateEmail(auth.currentUser, val);
+                    if (field === 'password') await updatePassword(auth.currentUser, val);
+                    const updateData = {};
+                    if (field === 'name') updateData.displayName = val;
+                    if (field === 'phone') updateData.phone = val;
+                    if (Object.keys(updateData).length > 0) await updateDoc(doc(db, "users", auth.currentUser.uid), updateData);
+                    alert("更新しました");
+                    location.reload();
+                } catch (e) { alert(e.message); }
+            };
+        };
+
+        window.closeAll = () => document.querySelectorAll('.modal, .overlay').forEach(el => el.classList.add('hidden'));
         document.getElementById('logout-btn').onclick = () => signOut(auth);
     </script>
 </body>
