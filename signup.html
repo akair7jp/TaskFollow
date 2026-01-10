@@ -3,34 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <title>TaskFollow - 新規登録</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f8f9fc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; padding: 45px; border-radius: 2rem; width: 420px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
-        input { width: 100%; padding: 14px; margin-bottom: 15px; border: 1px solid #eee; border-radius: 0.75rem; box-sizing: border-box; }
-        button { background: #5b50f2; color: white; border: none; padding: 16px; width: 100%; border-radius: 0.75rem; font-weight: 700; cursor: pointer; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        :root { --primary: #5b50f2; --bg: #f8f9fc; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 48px; border-radius: 2rem; box-shadow: 0 10px 40px rgba(0,0,0,0.05); width: 420px; text-align: center; }
+        h1 { color: var(--primary); font-size: 32px; margin: 0; font-weight: 700; }
+        .sub { font-size: 14px; color: #888; margin: 12px 0 35px; }
+        input { width: 100%; padding: 14px; margin-bottom: 12px; border: 1px solid #eee; border-radius: 0.75rem; background: #fafafa; box-sizing: border-box; font-family: inherit; }
+        .btn-main { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; border-radius: 0.75rem; font-weight: 700; cursor: pointer; margin-top: 10px; }
+        .sep { color: #ccc; margin: 20px 0; font-size: 12px; display: flex; align-items: center; gap: 10px; }
+        .sep::before, .sep::after { content: ""; flex: 1; height: 1px; background: #eee; }
+        .g-btn { background: white; border: 1px solid #eee; padding: 12px; border-radius: 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; font-size: 14px; font-weight: 600; font-family: inherit; }
+        #recaptcha-container { margin: 15px 0; display: flex; justify-content: center; }
     </style>
 </head>
 <body>
     <div class="card">
         <h1>TaskFollow</h1>
-        <input type="text" id="s-name" placeholder="ユーザー名">
-        <input type="email" id="s-email" placeholder="メールアドレス *">
+        <p class="sub">あなたのタスクを整理して、効率的に管理しましょう</p>
+        <input type="text" id="s-name" placeholder="ユーザー名 (全言語対応)" required>
+        <input type="email" id="s-email" placeholder="メールアドレス *" required>
         <input type="tel" id="s-phone" placeholder="電話番号 (忘却用) *">
         <input type="password" id="s-pw" placeholder="パスワード">
         <input type="password" id="s-pw-conf" placeholder="パスワード (再確認)">
-        <button id="signup-exec">アカウント作成</button>
+        
+        <div id="recaptcha-container"></div> <!-- reCAPTCHA 復元 -->
+
+        <button class="btn-main" id="signup-exec">アカウントを作成する</button>
+        <div class="sep">または</div>
+        <button class="g-btn" id="g-signup">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Google アカウントを使用
+        </button>
+        <a href="index.html" style="color:#888; font-size:13px; margin-top:25px; display:block; text-decoration:none; font-weight:600;">ログインに戻る</a>
     </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, RecaptchaVerifier } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
         import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
-        const app = initializeApp({ apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff" });
+
+        const config = { apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff" };
+        const app = initializeApp(config);
         const auth = getAuth(app);
         const db = getFirestore(app);
+
+        // reCAPTCHA 初期化
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'normal' });
+
         document.getElementById('signup-exec').onclick = async () => {
-            const res = await createUserWithEmailAndPassword(auth, document.getElementById('s-email').value, document.getElementById('s-pw').value);
-            await setDoc(doc(db, "users", res.user.uid), { displayName: document.getElementById('s-name').value, phone: document.getElementById('s-phone').value });
-            window.location.href = "todo.html";
+            const name = document.getElementById('s-name').value;
+            const email = document.getElementById('s-email').value;
+            const pw = document.getElementById('s-pw').value;
+            if (pw !== document.getElementById('s-pw-conf').value) return alert("パスワード不一致");
+
+            try {
+                const res = await createUserWithEmailAndPassword(auth, email, pw);
+                await setDoc(doc(db, "users", res.user.uid), { displayName: name, phone: document.getElementById('s-phone').value, email: email });
+                window.location.href = "https://akair7jp.github.io/TaskFollow/todo.html";
+            } catch (e) { alert(e.message); }
+        };
+
+        document.getElementById('g-signup').onclick = async () => {
+            await signInWithPopup(auth, new GoogleAuthProvider());
+            window.location.href = "https://akair7jp.github.io/TaskFollow/todo.html";
         };
     </script>
 </body>
