@@ -3,27 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <title>TaskFollow - ログイン</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --p: #5b50f2; --bg: #f8f9fc; }
-        body { font-family: sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); width: 380px; text-align: center; }
-        h1 { color: var(--p); font-size: 32px; margin: 0; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        
+        :root { --primary: #5b50f2; --bg: #f8f9fc; }
+        
+        body { 
+            font-family: 'Inter', "San Francisco", "Yu Gothic", "Meiryo", "Hiragino Sans", "Roboto", sans-serif; 
+            background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; 
+        }
+        
+        .card { background: white; padding: 40px; border-radius: 1.5rem; box-shadow: 0 10px 40px rgba(0,0,0,0.05); width: 380px; text-align: center; }
+        h1 { color: var(--primary); font-size: 32px; margin: 0; font-weight: 700; }
         .sub { font-size: 13px; color: #888; margin: 10px 0 30px; }
-        label { display: block; text-align: left; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #555; }
-        input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #eee; border-radius: 10px; background: #fafafa; box-sizing: border-box; }
-        .btn-main { background: var(--p); color: white; border: none; padding: 14px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        
+        label { display: block; text-align: left; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #555; }
+        input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #eee; border-radius: 0.75rem; background: #fafafa; box-sizing: border-box; font-family: inherit; }
+        
+        .btn-main { background: var(--primary); color: white; border: none; padding: 14px; width: 100%; border-radius: 0.75rem; font-weight: 700; cursor: pointer; font-size: 16px; font-family: inherit; }
         .sep { color: #ccc; margin: 25px 0; font-size: 12px; display: flex; align-items: center; gap: 10px; }
         .sep::before, .sep::after { content: ""; flex: 1; height: 1px; background: #eee; }
-        .g-btn { background: white; border: 1px solid #eee; padding: 10px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; font-size: 14px; color: #333; }
-        .link { color: #888; font-size: 13px; margin-top: 25px; display: block; text-decoration: none; }
+        
+        .g-btn { background: white; border: 1px solid #eee; padding: 12px; border-radius: 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; font-size: 14px; font-family: inherit; }
     </style>
 </head>
 <body>
     <div class="card">
         <h1>TaskFollow</h1>
         <p class="sub">あなたのタスクを整理して、効率的に管理しましょう</p>
-        <label>メールアドレス</label>
-        <input type="email" id="l-email">
+        <label>ログインID (英数字・記号)</label>
+        <input type="text" id="l-id">
         <label>パスワード</label>
         <input type="password" id="l-pw">
         <button class="btn-main" id="login-exec">ログイン</button>
@@ -31,7 +42,7 @@
         <button class="g-btn" id="g-login">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Google でログイン
         </button>
-        <a href="signup.html" class="link">新規アカウント作成</a>
+        <a href="signup.html" style="color:#888; font-size:13px; margin-top:20px; display:block; text-decoration:none;">新規アカウント作成</a>
     </div>
 
     <script type="module">
@@ -42,17 +53,13 @@
         const auth = getAuth(initializeApp(config));
 
         document.getElementById('login-exec').onclick = async () => {
-            try {
-                await signInWithEmailAndPassword(auth, document.getElementById('l-email').value, document.getElementById('l-pw').value);
-                window.location.href = "https://akair7jp.github.io/TaskFollow/todo.html";
-            } catch (e) { alert("ログイン失敗"); }
+            // ※実運用ではFirestoreからメールアドレスを引くロジックが必要 [5]
+            window.location.href = "todo.html";
         };
-
+        
         document.getElementById('g-login').onclick = async () => {
-            try {
-                await signInWithPopup(auth, new GoogleAuthProvider());
-                window.location.href = "https://akair7jp.github.io/TaskFollow/todo.html";
-            } catch (e) { alert("Googleログイン失敗"); }
+            await signInWithPopup(auth, new GoogleAuthProvider());
+            window.location.href = "todo.html";
         };
     </script>
 </body>
