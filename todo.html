@@ -9,33 +9,33 @@
         :root { --p: #5b50f2; --bg: #f8f9fc; --red: #ff4d4d; --gray: #718096; }
         body { font-family: 'Inter', "Yu Gothic", sans-serif; background: var(--bg); margin: 0; color: #1a202c; -webkit-font-smoothing: antialiased; }
 
-        /* ヘッダー UI [5][3] */
+        /* ヘッダー UI [3, 5, 6] */
         header { background: white; padding: 15px 60px; border-bottom: 1px solid #edf2f7; display: flex; justify-content: space-between; align-items: flex-start; position: sticky; top: 0; z-index: 100; }
         .logo-box h2 { margin: 0; font-size: 22px; font-weight: 800; }
         .logo-box p { margin: 2px 0 8px; font-size: 12px; color: var(--gray); }
         .u-area { position: relative; cursor: pointer; }
         .u-name { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 5px; color: #1a202c; }
-        .dropdown { display: none; position: absolute; top: 100%; left: 0; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 1rem; padding: 10px; min-width: 220px; margin-top: 10px; border: 1px solid #eee; z-index: 1000; }
+        .dropdown { display: none; position: absolute; top: 100%; left: 0; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 1rem; padding: 10px; min-width: 240px; margin-top: 10px; border: 1px solid #eee; z-index: 1000; }
         .u-area:hover .dropdown { display: block; }
         .dropdown button { width: 100%; text-align: left; padding: 12px; border: none; background: none; font-size: 13px; cursor: pointer; border-radius: 0.5rem; display: flex; align-items: center; gap: 10px; color: #4a5568; font-family: inherit; }
         .dropdown .logout { color: var(--red); border-top: 1px solid #f7fafc; margin-top: 5px; padding-top: 10px; font-weight: 700; }
+        .dropdown .google-link { color: #4285f4; font-weight: 700; border-top: 1px solid #f7fafc; margin-top: 5px; padding-top: 10px; }
 
-        /* ナビボタン [6][3] */
         .h-btns { display: flex; gap: 10px; margin-top: 5px; }
         .h-btn { padding: 9px 18px; border-radius: 0.75rem; border: 1px solid #e2e8f0; background: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; font-family: inherit; }
         .h-btn-main { background: var(--p); color: white; border: none; padding: 11px 22px; }
 
-        /* 統計 [7] */
+        /* 統計エリア [3] */
         .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 25px 60px; }
         .stat-card { background: white; padding: 22px; border-radius: 1.5rem; border: 1px solid #edf2f7; display: flex; align-items: center; gap: 15px; }
         .stat-icon { width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
 
-        /* 一括操作バー (紫色) [6][3] */
+        /* 一括操作バー [3] */
         .bulk-bar { display: none; background: var(--p); color: white; margin: 0 60px 20px; padding: 14px 25px; border-radius: 1.25rem; justify-content: space-between; align-items: center; }
         .bulk-btns { display: flex; gap: 10px; }
         .bulk-btns button, .bulk-btns select { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 15px; border-radius: 0.6rem; cursor: pointer; font-weight: 700; font-size: 13px; font-family: inherit; }
 
-        /* 検索・切替 [6][3] */
+        /* 検索・フィルタ [3, 7] */
         .ctrls { padding: 0 60px 25px; }
         .search-wrap { position: relative; margin-bottom: 22px; }
         .search-wrap i { position: absolute; left: 18px; top: 15px; color: #cbd5e0; }
@@ -43,11 +43,12 @@
         .filter-row { display: flex; gap: 12px; align-items: center; }
         select { padding: 10px 15px; border-radius: 0.75rem; border: 1px solid #e2e8f0; background: white; font-size: 13px; cursor: pointer; font-weight: 600; color: #4a5568; }
 
+        /* 表示切替ボタン [3, 4, 8] */
         .view-toggle { margin-left: auto; display: flex; background: #edf2f7; padding: 4px; border-radius: 12px; }
         .view-toggle button { border: none; background: none; padding: 7px 18px; border-radius: 9px; cursor: pointer; font-weight: 700; color: var(--gray); transition: 0.2s; }
         .view-toggle button.active { background: white; color: var(--p); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
-        /* タスクカード [2] */
+        /* タスクカード [3, 8] */
         .task-card { background: white; padding: 28px 35px; border-radius: 1.5rem; border: 1px solid #edf2f7; margin: 0 60px 15px; position: relative; }
         .task-title { font-size: 19px; font-weight: 800; display: flex; align-items: center; gap: 15px; margin-bottom: 12px; }
         .task-meta { display: flex; gap: 20px; font-size: 13px; color: var(--gray); margin-left: 36px; margin-bottom: 22px; }
@@ -56,7 +57,7 @@
         .st-btn { padding: 8px 22px; border-radius: 20px; border: 1px solid #edf2f7; background: #f8fafc; font-size: 13px; font-weight: 700; cursor: pointer; color: var(--gray); }
         .st-btn.active { background: var(--p); color: white; border-color: var(--p); }
 
-        /* カレンダー [Cの修正] */
+        /* カレンダー表示 [C] */
         #cal-view { padding: 0 60px; display: none; }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #edf2f7; border: 1px solid #edf2f7; border-radius: 1rem; overflow: hidden; }
         .cal-day { background: white; min-height: 120px; padding: 10px; border: 1px solid #f8f9fc; }
@@ -64,7 +65,7 @@
         .cal-num { font-weight: 700; font-size: 12px; color: var(--gray); margin-bottom: 5px; display: block; }
         .cal-task { font-size: 10px; background: #f0efff; color: var(--p); padding: 3px 6px; border-radius: 4px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; }
 
-        /* モーダル群 [1][8][4] */
+        /* モーダル群 [4, 5, 9] */
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; backdrop-filter: blur(4px); }
         .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 40px; border-radius: 2rem; z-index: 2001; display: none; width: 500px; box-shadow: 0 30px 100px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; }
         .modal h3 { margin: 0 0 25px; font-size: 22px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
@@ -84,20 +85,21 @@
             <h2>タスク管理</h2>
             <p>あなたのタスクを整理して、効率的に管理しましょう</p>
             <div class="u-area">
-                <!-- [A] 名前バグ修正 -->
-                <div class="u-name"><span id="user-display">aaa</span> さん <i class="fa-solid fa-chevron-down" style="font-size:10px;"></i></div>
+                <!-- [A] 名前バグ修正・ログインID表記削除 -->
+                <div class="u-name"><span id="user-display">---</span> さん <i class="fa-solid fa-chevron-down" style="font-size:10px;"></i></div>
                 <div class="dropdown">
                     <!-- [A] プロフィール変更機能 -->
                     <button onclick="openM('edit-profile', 'email')"><i class="fa-solid fa-envelope"></i> メールアドレス変更</button>
                     <button onclick="openM('edit-profile', 'phone')"><i class="fa-solid fa-phone"></i> 電話番号変更</button>
                     <button onclick="openM('edit-profile', 'password')"><i class="fa-solid fa-key"></i> パスワード変更</button>
-                    <!-- [A] ログインID表記削除済 -->
+                    <!-- [D] Googleアカウント連携ボタン -->
+                    <button onclick="linkGoogle()" class="google-link"><i class="fa-brands fa-google"></i> Googleアカウント連携</button>
                     <button onclick="logout()" class="logout"><i class="fa-solid fa-right-from-bracket"></i> ログアウト</button>
                 </div>
             </div>
         </div>
         <div class="h-btns">
-            <!-- [B] 全ボタン活性化 -->
+            <!-- [B] 全ボタン機能活性化 [3, 5] -->
             <button class="h-btn" onclick="openM('cat')"><i class="fa-solid fa-gear"></i> 設定</button>
             <button class="h-btn" onclick="openM('import')"><i class="fa-solid fa-file-import"></i> インポート</button>
             <button class="h-btn" onclick="openM('bulk')"><i class="fa-solid fa-list-check"></i> 一括登録</button>
@@ -128,7 +130,7 @@
             <select id="f-pri" onchange="refreshUI()"><option value="">全優先度</option><option>高</option><option>中</option><option>低</option></select>
             <select id="f-cat" onchange="refreshUI()"><option value="">全カテゴリ</option></select>
             <select id="f-sort" onchange="refreshUI()"><option value="pri">優先度順</option><option value="date">期限順</option></select>
-            <!-- [C] カレンダー切替ボタン修正 -->
+            <!-- [C] カレンダー切替ボタンUI [3, 4] -->
             <div class="view-toggle">
                 <button id="btn-list" class="active" onclick="switchView('list')">リスト</button>
                 <button id="btn-cal" onclick="switchView('cal')">カレンダー</button>
@@ -136,16 +138,12 @@
         </div>
     </div>
 
-    <div id="list-view">
-        <div id="list-target"></div>
-    </div>
-    <div id="cal-view">
-        <div id="cal-target" class="cal-grid"></div>
-    </div>
+    <div id="list-view"><div id="list-target"></div></div>
+    <div id="cal-view"><div id="cal-target" class="cal-grid"></div></div>
 
     <div id="overlay" class="overlay" onclick="closeAll()"></div>
     
-    <!-- モーダル一式 [B][C] -->
+    <!-- モーダル群 [4, 5, 9] -->
     <div id="new-modal" class="modal">
         <h3>タスク作成 <i class="fa-solid fa-xmark" onclick="closeAll()" style="cursor:pointer; color:#cbd5e0;"></i></h3>
         <input type="text" id="t-title" placeholder="タイトル">
@@ -165,7 +163,7 @@
     </div>
 
     <div id="cat-modal" class="modal">
-        <h3>カテゴリー管理 <i class="fa-solid fa-xmark" onclick="closeAll()" style="cursor:pointer; color:#cbd5e0;"></i></h3>
+        <h3>カテゴリー管理</h3>
         <div style="display:flex; gap:10px; margin-bottom:15px;"><input type="text" id="new-cat-v" placeholder="新規名" style="margin:0;"><button onclick="addCat()" style="background:var(--p); color:white; border:none; padding:10px 20px; border-radius:10px; font-weight:800;">追加</button></div>
         <div id="cat-box" style="max-height:180px; overflow-y:auto; border:1px solid #eee; border-radius:12px; padding:10px;"></div>
         <button class="m-btn-c" style="width:100%; margin-top:15px;" onclick="closeAll()">閉じる</button>
@@ -173,27 +171,27 @@
 
     <div id="import-modal" class="modal">
         <h3>タスクのインポート</h3>
-        <p style="font-size:12px; color:var(--gray); margin-bottom:15px;">CSV または JSON形式 (上限10MB)</p>
+        <p style="font-size:12px; color:var(--gray); margin-bottom:15px;">CSV または JSON形式 (上限10MB) [4, 9]</p>
         <input type="file" id="import-file-input">
         <button class="m-btn-c" style="width:100%; margin-top:20px;" onclick="closeAll()">閉じる</button>
     </div>
 
     <div id="bulk-modal" class="modal">
         <h3>スマート一括登録</h3>
-        <p style="font-size:11px; color:var(--gray); margin-bottom:15px;">形式: タイトル, 内容, 優先度, カテゴリ, MMDD</p>
+        <p style="font-size:11px; color:var(--gray); margin-bottom:15px;">タイトル, 内容, 優先度, カテゴリ, MMDD [9]</p>
         <textarea id="bulk-v" style="height:200px; font-family:monospace;" placeholder="会議, 資料配布, 高, 仕事, 0520"></textarea>
         <div class="modal-btns"><button class="m-btn-c" onclick="closeAll()">キャンセル</button><button class="m-btn-s" onclick="processBulk()">一括登録を実行</button></div>
     </div>
 
     <div id="edit-profile-modal" class="modal">
         <h3 id="edit-h">設定変更</h3>
-        <input type="text" id="edit-v">
+        <input type="text" id="edit-v" placeholder="新しい値を入力">
         <div class="modal-btns"><button class="m-btn-c" onclick="closeAll()">中止</button><button class="m-btn-s" id="edit-exec-btn">更新する</button></div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, updateEmail, updatePassword } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut, updateEmail, updatePassword, GoogleAuthProvider, linkWithPopup } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, deleteDoc, getDoc, writeBatch } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
         const app = initializeApp({ apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff" });
@@ -207,14 +205,14 @@
             userNow = u;
             const uDoc = await getDoc(doc(db, "users", u.uid));
             const data = uDoc.data();
-            // [A] 名前バグ修正：Firebase Authプロファイルを優先
+            // [A] 名前表示バグ修正 [10]
             document.getElementById('user-display').innerText = u.displayName || data?.displayName || "ユーザー";
             if (data?.categories) cats = data.categories;
             syncCatUI();
             listenTasks();
         });
 
-        // 2. リアルタイムデータ [B]
+        // 2. リアルタイム監視 [11]
         function listenTasks() {
             onSnapshot(query(collection(db, "tasks"), where("uid", "==", userNow.uid)), snap => {
                 tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -251,7 +249,7 @@
             } catch (e) { alert("保存失敗: " + e.message); }
         };
 
-        // 5. [C] ビュー切替修正
+        // 5. [C] ビュー切替・描画修正 [3, 4, 9]
         window.switchView = (v) => {
             currentView = v;
             document.getElementById('btn-list').classList.toggle('active', v === 'list');
@@ -263,7 +261,7 @@
 
         function renderListView(f) {
             const target = document.getElementById('list-target');
-            if (!f.length) { target.innerHTML = `<div class="empty-state">タスクが見つかりません</div>`; return; }
+            if (!f.length) { target.innerHTML = `<div class="empty-state">タスクが見つかりません [4]</div>`; return; }
             target.innerHTML = f.map(t => `
                 <div class="task-card">
                     <div class="task-title"><input type="checkbox" class="t-chk" value="${t.id}" onchange="upBulkUI()"> ${t.title}</div>
@@ -294,7 +292,7 @@
             }
         }
 
-        // 6. [A][B] カテゴリー・プロフィール修正
+        // 6. [A][B][D] カテゴリー・プロフィール・Google連携 [1, 12-14]
         window.openM = (id, type) => {
             document.getElementById('overlay').style.display = 'block';
             document.getElementById(`${id}-modal`).style.display = 'block';
@@ -311,6 +309,15 @@
                     } catch(e) { alert(e.message); }
                 };
             }
+        };
+
+        window.linkGoogle = async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                // [D] 既存アカウントをGoogleプロバイダにリンク [1, 12, 13]
+                await linkWithPopup(auth.currentUser, provider);
+                alert("Googleアカウントと連携しました");
+            } catch (e) { alert("連携失敗: " + e.message); }
         };
 
         window.addCat = async () => {
@@ -333,7 +340,7 @@
         window.upBulkUI = () => {
             const n = document.querySelectorAll('.t-chk:checked').length;
             document.getElementById('bulk-ui').style.display = n ? 'flex' : 'none';
-            document.getElementById('bulk-info').innerText = `${n} 件選択中`;
+            document.getElementById('bulk-info').innerText = `${n} 件選択中 [15]`;
         };
         window.closeAll = () => { document.querySelectorAll('.modal, .overlay').forEach(el => el.style.display = 'none'); };
         function updateStats(f) {
