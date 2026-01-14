@@ -2,54 +2,187 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TaskFollow - ログイン</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        :root { --primary: #5b50f2; --bg: #f8f9fc; }
+        :root { --primary: #5b50f2; --bg: #f8f9fc; --error: #e53e3e; --success: #38a169; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .card { background: white; padding: 48px; border-radius: 2rem; box-shadow: 0 10px 40px rgba(0,0,0,0.05); width: 400px; text-align: center; }
         h1 { color: var(--primary); font-size: 32px; margin: 0; font-weight: 700; }
         .sub { font-size: 14px; color: #888; margin: 12px 0 35px; }
         label { display: block; text-align: left; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #555; }
-        input { width: 100%; padding: 14px; margin-bottom: 20px; border: 1px solid #eee; border-radius: 0.75rem; background: #fafafa; box-sizing: border-box; font-size: 15px; }
-        .btn-main { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; border-radius: 0.75rem; font-weight: 700; cursor: pointer; font-size: 16px; }
+        input { width: 100%; padding: 14px; margin-bottom: 20px; border: 1px solid #eee; border-radius: 0.75rem; background: #fafafa; box-sizing: border-box; font-size: 15px; transition: border-color 0.2s; }
+        input:focus { outline: none; border-color: var(--primary); }
+        input.error { border-color: var(--error); }
+        .btn-main { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; border-radius: 0.75rem; font-weight: 700; cursor: pointer; font-size: 16px; transition: opacity 0.2s; }
+        .btn-main:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-main:hover:not(:disabled) { opacity: 0.9; }
         .sep { color: #ccc; margin: 25px 0; font-size: 12px; display: flex; align-items: center; gap: 10px; }
         .sep::before, .sep::after { content: ""; flex: 1; height: 1px; background: #eee; }
-        .g-btn { background: white; border: 1px solid #eee; padding: 12px; border-radius: 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; font-size: 14px; font-weight: 600; }
+        .g-btn { background: white; border: 1px solid #eee; padding: 12px; border-radius: 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; font-size: 14px; font-weight: 600; transition: background 0.2s; }
+        .g-btn:hover { background: #f8f9fc; }
+        .g-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .error-msg { color: var(--error); font-size: 13px; margin-bottom: 15px; display: none; text-align: left; }
+        .loading { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.8s linear infinite; margin-right: 8px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
     <div class="card">
         <h1>TaskFollow</h1>
         <p class="sub">あなたのタスクを整理して、効率的に管理しましょう</p>
+        
+        <div id="error-msg" class="error-msg"></div>
+        
         <label>メールアドレス</label>
-        <input type="email" id="l-email" placeholder="example@mail.com">
+        <input type="email" id="l-email" placeholder="example@mail.com" autocomplete="email">
+        
         <label>パスワード</label>
-        <input type="password" id="l-pw" placeholder="••••••••">
+        <input type="password" id="l-pw" placeholder="••••••••" autocomplete="current-password">
+        
         <button class="btn-main" id="login-exec">ログイン</button>
+        
         <div class="sep">または</div>
+        
         <button class="g-btn" id="g-login">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Google でログイン
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" alt="Google"> Google でログイン
         </button>
+        
         <a href="signup.html" style="color:#888; font-size:13px; margin-top:25px; display:block; text-decoration:none; font-weight:600;">新規アカウント作成</a>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
-        const auth = getAuth(initializeApp({ apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff" }));
-        
-        document.getElementById('login-exec').onclick = async () => {
+        import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", 
+            authDomain: "taskfollow-b70ff.firebaseapp.com", 
+            projectId: "taskfollow-b70ff" 
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // DOM要素
+        const emailInput = document.getElementById('l-email');
+        const pwInput = document.getElementById('l-pw');
+        const loginBtn = document.getElementById('login-exec');
+        const gLoginBtn = document.getElementById('g-login');
+        const errorMsg = document.getElementById('error-msg');
+
+        // 既にログイン済みならリダイレクト
+        onAuthStateChanged(auth, user => {
+            if (user) window.location.href = "todo.html";
+        });
+
+        // エラー表示
+        const showError = (msg) => {
+            errorMsg.textContent = msg;
+            errorMsg.style.display = 'block';
+        };
+        const hideError = () => {
+            errorMsg.style.display = 'none';
+        };
+
+        // ローディング状態の切り替え
+        const setLoading = (btn, loading, text) => {
+            btn.disabled = loading;
+            btn.innerHTML = loading ? `<span class="loading"></span>${text}` : text;
+        };
+
+        // バリデーション
+        const validateInputs = () => {
+            hideError();
+            emailInput.classList.remove('error');
+            pwInput.classList.remove('error');
+
+            const email = emailInput.value.trim();
+            const pw = pwInput.value;
+
+            if (!email) {
+                emailInput.classList.add('error');
+                showError('メールアドレスを入力してください');
+                return false;
+            }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                emailInput.classList.add('error');
+                showError('有効なメールアドレスを入力してください');
+                return false;
+            }
+            if (!pw) {
+                pwInput.classList.add('error');
+                showError('パスワードを入力してください');
+                return false;
+            }
+            return true;
+        };
+
+        // Firebaseエラーメッセージの日本語化
+        const getErrorMessage = (code) => {
+            const messages = {
+                'auth/invalid-email': 'メールアドレスの形式が正しくありません',
+                'auth/user-disabled': 'このアカウントは無効化されています',
+                'auth/user-not-found': 'アカウントが見つかりません',
+                'auth/wrong-password': 'パスワードが正しくありません',
+                'auth/invalid-credential': 'メールアドレスまたはパスワードが正しくありません',
+                'auth/too-many-requests': 'ログイン試行回数が多すぎます。しばらく待ってから再試行してください',
+                'auth/popup-closed-by-user': 'ログインがキャンセルされました',
+                'auth/popup-blocked': 'ポップアップがブロックされました。ポップアップを許可してください',
+                'auth/network-request-failed': 'ネットワークエラーが発生しました'
+            };
+            return messages[code] || 'ログインに失敗しました';
+        };
+
+        // メールログイン
+        loginBtn.onclick = async () => {
+            if (!validateInputs()) return;
+
+            setLoading(loginBtn, true, 'ログイン中...');
+            hideError();
+
             try {
-                await signInWithEmailAndPassword(auth, document.getElementById('l-email').value, document.getElementById('l-pw').value);
+                await signInWithEmailAndPassword(auth, emailInput.value.trim(), pwInput.value);
                 window.location.href = "todo.html";
-            } catch (e) { alert("ログイン失敗"); }
+            } catch (e) {
+                showError(getErrorMessage(e.code));
+                setLoading(loginBtn, false, 'ログイン');
+            }
         };
-        document.getElementById('g-login').onclick = async () => {
-            await signInWithPopup(auth, new GoogleAuthProvider());
-            window.location.href = "todo.html";
+
+        // Googleログイン
+        gLoginBtn.onclick = async () => {
+            setLoading(gLoginBtn, true, 'ログイン中...');
+            hideError();
+
+            try {
+                const result = await signInWithPopup(auth, new GoogleAuthProvider());
+                // Googleログイン時にユーザー情報がなければ作成
+                const userDoc = await getDoc(doc(db, "users", result.user.uid));
+                if (!userDoc.exists()) {
+                    await setDoc(doc(db, "users", result.user.uid), {
+                        displayName: result.user.displayName || "ユーザー",
+                        email: result.user.email,
+                        categories: ["なし", "仕事", "プライベート"]
+                    });
+                }
+                window.location.href = "todo.html";
+            } catch (e) {
+                showError(getErrorMessage(e.code));
+                setLoading(gLoginBtn, false, '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" alt="Google"> Google でログイン');
+            }
         };
+
+        // Enterキーでログイン
+        pwInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loginBtn.click();
+        });
+        emailInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') pwInput.focus();
+        });
     </script>
 </body>
 </html>
