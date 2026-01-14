@@ -2,11 +2,12 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>タスク管理 - TaskFollow</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-        :root { --p: #5b50f2; --bg: #f8f9fc; --red: #ff4d4d; --gray: #718096; }
+        :root { --p: #5b50f2; --bg: #f8f9fc; --red: #ff4d4d; --gray: #718096; --success: #22c55e; }
         body { font-family: 'Inter', "Yu Gothic", sans-serif; background: var(--bg); margin: 0; color: #1a202c; -webkit-font-smoothing: antialiased; }
 
         /* ヘッダー UI */
@@ -24,8 +25,10 @@
 
         /* ナビゲーション */
         .h-btns { display: flex; gap: 10px; margin-top: 5px; }
-        .h-btn { padding: 9px 18px; border-radius: 0.75rem; border: 1px solid #e2e8f0; background: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; font-family: inherit; }
+        .h-btn { padding: 9px 18px; border-radius: 0.75rem; border: 1px solid #e2e8f0; background: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; font-family: inherit; transition: all 0.2s; }
+        .h-btn:hover { background: #f7fafc; }
         .h-btn-main { background: var(--p); color: white; border: none; padding: 11px 22px; }
+        .h-btn-main:hover { opacity: 0.9; }
 
         /* 統計エリア */
         .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 25px 60px; }
@@ -42,44 +45,77 @@
         .search-wrap { position: relative; margin-bottom: 22px; }
         .search-wrap i { position: absolute; left: 18px; top: 15px; color: #cbd5e0; }
         .search-wrap input { width: 100%; padding: 14px 14px 14px 50px; border-radius: 0.85rem; border: 1px solid #e2e8f0; font-size: 14px; box-sizing: border-box; font-family: inherit; }
-        .filter-row { display: flex; gap: 12px; align-items: center; }
+        .filter-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
         select { padding: 10px 15px; border-radius: 0.75rem; border: 1px solid #e2e8f0; background: white; font-size: 13px; cursor: pointer; font-weight: 600; color: #4a5568; }
 
         .view-toggle { margin-left: auto; display: flex; background: #edf2f7; padding: 4px; border-radius: 12px; }
-        .view-toggle button { border: none; background: none; padding: 7px 18px; border-radius: 9px; cursor: pointer; font-weight: 700; color: var(--gray); }
+        .view-toggle button { border: none; background: none; padding: 7px 18px; border-radius: 9px; cursor: pointer; font-weight: 700; color: var(--gray); transition: all 0.2s; }
         .view-toggle button.active { background: white; color: var(--p); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
         /* タスクカード */
-        .task-card { background: white; padding: 28px 35px; border-radius: 1.5rem; border: 1px solid #edf2f7; margin: 0 60px 15px; position: relative; }
+        .task-card { background: white; padding: 28px 35px; border-radius: 1.5rem; border: 1px solid #edf2f7; margin: 0 60px 15px; position: relative; transition: box-shadow 0.2s; }
+        .task-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .task-title { font-size: 19px; font-weight: 800; display: flex; align-items: center; gap: 15px; margin-bottom: 12px; }
-        .task-meta { display: flex; gap: 20px; font-size: 13px; color: var(--gray); margin-left: 36px; margin-bottom: 22px; }
+        .task-meta { display: flex; gap: 20px; font-size: 13px; color: var(--gray); margin-left: 36px; margin-bottom: 22px; flex-wrap: wrap; }
         .tag { background: #f0efff; color: var(--p); padding: 4px 12px; border-radius: 8px; font-weight: 800; }
-        .st-group { margin-left: 36px; display: flex; gap: 10px; }
-        .st-btn { padding: 8px 22px; border-radius: 20px; border: 1px solid #edf2f7; background: #f8fafc; font-size: 13px; font-weight: 700; cursor: pointer; color: var(--gray); }
+        .st-group { margin-left: 36px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .st-btn { padding: 8px 22px; border-radius: 20px; border: 1px solid #edf2f7; background: #f8fafc; font-size: 13px; font-weight: 700; cursor: pointer; color: var(--gray); transition: all 0.2s; }
+        .st-btn:hover { background: #edf2f7; }
         .st-btn.active { background: var(--p); color: white; border-color: var(--p); }
+        .task-actions { position: absolute; top: 28px; right: 35px; display: flex; gap: 8px; }
+        .task-actions button { background: none; border: none; cursor: pointer; color: #cbd5e0; font-size: 16px; padding: 5px; transition: color 0.2s; }
+        .task-actions button:hover { color: var(--gray); }
+        .task-actions button.delete-btn:hover { color: var(--red); }
 
         /* カレンダー表示 */
-        #cal-view { padding: 0 60px; display: none; }
+        #cal-view-area { padding: 0 60px; display: none; }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #edf2f7; border: 1px solid #edf2f7; border-radius: 1rem; overflow: hidden; }
         .cal-day { background: white; min-height: 120px; padding: 10px; border: 1px solid #f8f9fc; }
         .cal-header { background: #f8fafc; padding: 15px; text-align: center; font-weight: 800; font-size: 13px; }
-        .cal-task { font-size: 10px; background: #f0efff; color: var(--p); padding: 3px 6px; border-radius: 4px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; }
+        .cal-task { font-size: 10px; background: #f0efff; color: var(--p); padding: 3px 6px; border-radius: 4px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; cursor: pointer; }
+        .cal-task:hover { background: #e0dfff; }
 
         /* モーダル群 */
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; backdrop-filter: blur(4px); }
         .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 40px; border-radius: 2rem; z-index: 2001; display: none; width: 500px; box-shadow: 0 30px 100px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; }
         .modal h3 { margin: 0 0 25px; font-size: 22px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
         .modal input, .modal select, .modal textarea { width: 100%; padding: 15px; border: 1px solid #e2e8f0; border-radius: 0.85rem; background: #f8f9fc; margin-bottom: 15px; box-sizing: border-box; font-family: inherit; }
+        .modal input:focus, .modal select:focus, .modal textarea:focus { outline: none; border-color: var(--p); }
         .date-section { background: #f8fafc; padding: 25px; border-radius: 1.5rem; border: 1px solid #edf2f7; margin-bottom: 15px; }
         .modal-btns { display: flex; gap: 15px; margin-top: 15px; }
-        .m-btn-c { flex: 1; padding: 16px; border-radius: 12px; border: none; background: #edf2f7; font-weight: 700; cursor: pointer; color: #4a5568; }
-        .m-btn-s { flex: 1; padding: 16px; border-radius: 12px; border: none; background: var(--p); color: white; font-weight: 700; cursor: pointer; }
+        .m-btn-c { flex: 1; padding: 16px; border-radius: 12px; border: none; background: #edf2f7; font-weight: 700; cursor: pointer; color: #4a5568; transition: background 0.2s; }
+        .m-btn-c:hover { background: #e2e8f0; }
+        .m-btn-s { flex: 1; padding: 16px; border-radius: 12px; border: none; background: var(--p); color: white; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+        .m-btn-s:hover { opacity: 0.9; }
+        .m-btn-s:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .hidden { display: none !important; }
         .empty-state { text-align: center; padding: 100px 0; color: #cbd5e0; font-weight: 800; font-size: 18px; }
+        
+        /* ローディング */
+        .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 3000; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 15px; }
+        .spinner { width: 40px; height: 40px; border: 3px solid #edf2f7; border-top-color: var(--p); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            header { padding: 15px 20px; flex-direction: column; gap: 15px; }
+            .stats { grid-template-columns: repeat(2, 1fr); padding: 15px 20px; }
+            .ctrls { padding: 0 20px 20px; }
+            .task-card { margin: 0 20px 15px; padding: 20px; }
+            .bulk-bar { margin: 0 20px 15px; }
+            #cal-view-area { padding: 0 20px; }
+            .modal { width: calc(100% - 40px); padding: 30px 20px; }
+        }
     </style>
 </head>
 <body>
+    <!-- ローディング表示 -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <div style="color: var(--gray); font-weight: 600;">読み込み中...</div>
+    </div>
+
     <!-- ヘッダーエリア -->
     <header>
         <div class="logo-box">
@@ -92,7 +128,7 @@
                     <button id="btn-edit-phone"><i class="fa-solid fa-phone"></i> 電話番号変更</button>
                     <button id="btn-edit-password"><i class="fa-solid fa-key"></i> パスワード変更</button>
                     <button id="btn-edit-name" style="color:var(--p);"><i class="fa-solid fa-user-pen"></i> ユーザー名の変更</button>
-                    <button id="btn-link-google" class="special-btn" style="color:#4285f4;"><i class="fa-brands fa-google"></i> Googleアカウント連携</button>
+                    <button id="btn-link-google" class="special-btn" style="color:#4285f4;"><i class="fa-brands fa-google"></i> <span id="google-link-text">Googleアカウント連携</span></button>
                     <button id="btn-logout" class="logout"><i class="fa-solid fa-right-from-bracket"></i> ログアウト</button>
                 </div>
             </div>
@@ -117,7 +153,7 @@
     <div class="bulk-bar" id="bulk-ui">
         <div><button id="btn-select-all" style="background:none; border:none; color:white; font-weight:800; cursor:pointer;">すべて選択</button> <span id="bulk-info" style="margin-left:15px;">0 件選択中</span></div>
         <div class="bulk-btns">
-            <select id="bulk-st"><option value="">状態変更</option><option>未着手</option><option>進行中</option><option>完了</option></select>
+            <select id="bulk-st"><option value="">状態変更</option><option value="未着手">未着手</option><option value="進行中">進行中</option><option value="完了">完了</option></select>
             <button id="btn-bulk-copy">一括複製</button>
             <button id="btn-bulk-delete" style="background:var(--red);">一括削除</button>
         </div>
@@ -127,10 +163,10 @@
     <div class="ctrls">
         <div class="search-wrap"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="q-search" placeholder="タスクを検索..."></div>
         <div class="filter-row">
-            <select id="f-st"><option value="">全ステータス</option><option>未着手</option><option>進行中</option><option>完了</option></select>
-            <select id="f-pri"><option value="">全優先度</option><option>高</option><option>中</option><option>低</option></select>
+            <select id="f-st"><option value="">全ステータス</option><option value="未着手">未着手</option><option value="進行中">進行中</option><option value="完了">完了</option></select>
+            <select id="f-pri"><option value="">全優先度</option><option value="高">高</option><option value="中">中</option><option value="低">低</option></select>
             <select id="f-cat"><option value="">全カテゴリ</option></select>
-            <select id="f-sort"><option value="pri">優先度順</option><option value="date">期限順</option></select>
+            <select id="f-sort"><option value="pri">優先度順</option><option value="date">期限順</option><option value="created">作成順</option></select>
             <div class="view-toggle">
                 <button id="btn-list-view" class="active">リスト</button>
                 <button id="btn-cal-view">カレンダー</button>
@@ -144,9 +180,10 @@
     <!-- モーダル・オーバーレイ -->
     <div id="overlay" class="overlay"></div>
     
-    <!-- 新規作成モーダル -->
+    <!-- 新規作成・編集モーダル -->
     <div id="new-modal" class="modal">
-        <h3>新規タスク作成</h3>
+        <h3 id="modal-title">新規タスク作成</h3>
+        <input type="hidden" id="edit-task-id">
         <input type="text" id="t-title" placeholder="タスク名を入力...">
         <div style="display:flex; gap:12px;">
             <select id="t-pri"><option value="高">優先度: 高</option><option value="中" selected>優先度: 中</option><option value="低">優先度: 低</option></select>
@@ -155,7 +192,7 @@
         <div class="date-section">
             <label style="font-weight:800; display:block; margin-bottom:12px;"><input type="checkbox" id="t-has-date" checked> 期限を設ける</label>
             <div style="font-size:11px; color:#a0aec0; margin-bottom:5px; font-weight:700;">スマート入力 (MMDD)</div>
-            <input type="text" id="t-mmdd" placeholder="例: 0520">
+            <input type="text" id="t-mmdd" placeholder="例: 0520" maxlength="4">
             <div style="font-size:11px; color:#a0aec0; margin-bottom:5px; font-weight:700;">カレンダーから選択</div>
             <input type="date" id="t-picker">
         </div>
@@ -166,7 +203,7 @@
     <!-- カテゴリー管理モーダル -->
     <div id="cat-modal" class="modal">
         <h3>カテゴリー管理</h3>
-        <div style="display:flex; gap:10px; margin-bottom:15px;"><input type="text" id="new-cat-v" placeholder="新規名"><button id="btn-add-cat" style="background:var(--p); color:white; border:none; padding:10px 20px; border-radius:10px; font-weight:800;">追加</button></div>
+        <div style="display:flex; gap:10px; margin-bottom:15px;"><input type="text" id="new-cat-v" placeholder="新規カテゴリ名"><button id="btn-add-cat" style="background:var(--p); color:white; border:none; padding:10px 20px; border-radius:10px; font-weight:800; cursor:pointer;">追加</button></div>
         <div id="cat-box" style="max-height:180px; overflow-y:auto; border:1px solid #eee; border-radius:12px; padding:10px;"></div>
         <button class="m-btn-c btn-close" style="width:100%; margin-top:15px;">閉じる</button>
     </div>
@@ -175,7 +212,7 @@
     <div id="import-modal" class="modal">
         <h3>タスクをインポート</h3>
         <p style="font-size:12px; color:var(--gray); margin-bottom:15px;">JSON形式のテキストを貼り付けてください。</p>
-        <textarea id="import-v" placeholder='[{"title":"タスク1"}, {"title":"タスク2"}]' style="height:150px;"></textarea>
+        <textarea id="import-v" placeholder='[{"title":"タスク1","priority":"高","category":"仕事"}]' style="height:150px;"></textarea>
         <div class="modal-btns"><button class="m-btn-c btn-close">中止</button><button class="m-btn-s" id="btn-import-exec">インポート実行</button></div>
     </div>
 
@@ -183,7 +220,7 @@
     <div id="bulk-modal" class="modal">
         <h3>一括登録</h3>
         <p style="font-size:12px; color:var(--gray); margin-bottom:15px;">1行に1タスクずつ入力してください。</p>
-        <textarea id="bulk-v" placeholder="タスク名1&#13;タスク名2&#13;タスク名3" style="height:150px;"></textarea>
+        <textarea id="bulk-v" placeholder="タスク名1&#10;タスク名2&#10;タスク名3" style="height:150px;"></textarea>
         <div class="modal-btns"><button class="m-btn-c btn-close">中止</button><button class="m-btn-s" id="btn-bulk-add-exec">一括登録実行</button></div>
     </div>
 
@@ -196,7 +233,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, updateEmail, updatePassword, updateProfile, GoogleAuthProvider, linkWithPopup, unlink } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut, updateEmail, updatePassword, updateProfile, GoogleAuthProvider, linkWithPopup, unlink, reauthenticateWithPopup } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, deleteDoc, getDoc, writeBatch, setDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff" };
@@ -205,24 +242,51 @@
         
         let userNow = null, tasks = [], cats = ["なし", "仕事", "プライベート"], currentView = 'list', calDate = new Date();
 
+        // --- HTMLエスケープ（XSS対策） ---
+        const escapeHtml = (str) => {
+            if (!str) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        };
+
         // --- ユーティリティ ---
-        const closeAll = () => { document.querySelectorAll('.modal, .overlay').forEach(el => el.style.display = 'none'); };
-        const openM = (id) => { document.getElementById('overlay').style.display = 'block'; document.getElementById(id).style.display = 'block'; };
+        const closeAll = () => { 
+            document.querySelectorAll('.modal, .overlay').forEach(el => el.style.display = 'none');
+            document.getElementById('edit-task-id').value = '';
+            document.getElementById('modal-title').textContent = '新規タスク作成';
+        };
+        const openM = (id) => { 
+            document.getElementById('overlay').style.display = 'block'; 
+            document.getElementById(id).style.display = 'block'; 
+        };
+        const hideLoading = () => {
+            document.getElementById('loading-overlay').style.display = 'none';
+        };
 
         // --- ユーザー監視 ---
         onAuthStateChanged(auth, async u => {
             if (!u) return window.location.href = "index.html";
             userNow = u;
-            const uDoc = await getDoc(doc(db, "users", u.uid));
-            let data = uDoc.data();
-            if (!data) {
-                data = { displayName: u.displayName || "ユーザー", categories: cats };
-                await setDoc(doc(db, "users", u.uid), data);
+            
+            try {
+                const uDoc = await getDoc(doc(db, "users", u.uid));
+                let data = uDoc.data();
+                if (!data) {
+                    data = { displayName: u.displayName || "ユーザー", categories: cats, email: u.email };
+                    await setDoc(doc(db, "users", u.uid), data);
+                }
+                document.getElementById('user-display').textContent = data.displayName || u.displayName || "ユーザー";
+                if (data.categories && data.categories.length > 0) cats = data.categories;
+                
+                // Google連携状態の表示
+                const isGoogleLinked = u.providerData.some(p => p.providerId === 'google.com');
+                document.getElementById('google-link-text').textContent = isGoogleLinked ? 'Google連携を解除' : 'Googleアカウント連携';
+                
+                syncCatUI();
+                listenTasks();
+            } catch (e) {
+                console.error('ユーザーデータ取得エラー:', e);
+                hideLoading();
             }
-            document.getElementById('user-display').innerText = data.displayName || u.displayName || "ユーザー";
-            if (data.categories) cats = data.categories;
-            syncCatUI();
-            listenTasks();
         });
 
         // --- データ監視 ---
@@ -230,17 +294,45 @@
             onSnapshot(query(collection(db, "tasks"), where("uid", "==", userNow.uid)), snap => {
                 tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 refreshUI();
+                hideLoading();
+            }, err => {
+                console.error('タスク取得エラー:', err);
+                hideLoading();
             });
         }
 
         // --- UIリフレッシュ ---
         window.refreshUI = () => {
             const q = document.getElementById('q-search').value.toLowerCase();
-            const fSt = document.getElementById('f-st').value, fPri = document.getElementById('f-pri').value, fCat = document.getElementById('f-cat').value;
+            const fSt = document.getElementById('f-st').value;
+            const fPri = document.getElementById('f-pri').value;
+            const fCat = document.getElementById('f-cat').value;
             const sort = document.getElementById('f-sort').value;
 
-            let filtered = tasks.filter(t => (t.title || "").toLowerCase().includes(q) && (!fSt || t.status == fSt) && (!fPri || t.priority == fPri) && (!fCat || t.category == fCat));
-            filtered.sort((a,b) => sort == "pri" ? ({"高":3,"中":2,"低":1}[b.priority] - {"高":3,"中":2,"低":1}[a.priority]) : (new Date(a.date) - new Date(b.date)));
+            let filtered = tasks.filter(t => {
+                const title = (t.title || "").toLowerCase();
+                const matchSearch = title.includes(q);
+                const matchStatus = !fSt || t.status === fSt;
+                const matchPriority = !fPri || t.priority === fPri;
+                const matchCategory = !fCat || t.category === fCat;
+                return matchSearch && matchStatus && matchPriority && matchCategory;
+            });
+
+            // ソート
+            const priorityOrder = {"高":3,"中":2,"低":1};
+            filtered.sort((a, b) => {
+                if (sort === "pri") {
+                    return (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0);
+                } else if (sort === "date") {
+                    const dateA = a.date === "期限なし" ? new Date(9999, 11, 31) : new Date(a.date);
+                    const dateB = b.date === "期限なし" ? new Date(9999, 11, 31) : new Date(b.date);
+                    return dateA - dateB;
+                } else {
+                    const createdA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
+                    const createdB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
+                    return createdB - createdA;
+                }
+            });
 
             updateStats(filtered);
             if (currentView === 'list') renderListView(filtered);
@@ -248,36 +340,99 @@
         };
 
         function updateStats(f) {
-            const c = { all: f.length, un: f.filter(t=>t.status=="未着手").length, ing: f.filter(t=>t.status=="進行中").length, fin: f.filter(t=>t.status=="完了").length };
-            ["all","un","ing","fin"].forEach(k => document.getElementById(`s-${k}`).innerText = c[k]);
+            const all = tasks.length;
+            const un = tasks.filter(t => t.status === "未着手").length;
+            const ing = tasks.filter(t => t.status === "進行中").length;
+            const fin = tasks.filter(t => t.status === "完了").length;
+            document.getElementById('s-all').textContent = all;
+            document.getElementById('s-un').textContent = un;
+            document.getElementById('s-ing').textContent = ing;
+            document.getElementById('s-fin').textContent = fin;
         }
 
         // --- リスト表示 ---
         function renderListView(f) {
             const target = document.getElementById('list-target');
-            if (!f.length) { target.innerHTML = `<div class="empty-state">タスクが見つかりません</div>`; return; }
+            if (!f.length) { 
+                target.innerHTML = `<div class="empty-state"><i class="fa-solid fa-inbox" style="font-size:48px; margin-bottom:20px; display:block;"></i>タスクが見つかりません</div>`; 
+                return; 
+            }
             target.innerHTML = f.map(t => `
-                <div class="task-card">
-                    <div class="task-title"><input type="checkbox" class="t-chk" value="${t.id}"> ${t.title}</div>
+                <div class="task-card" data-id="${escapeHtml(t.id)}">
+                    <div class="task-actions">
+                        <button class="edit-btn" title="編集"><i class="fa-solid fa-pen"></i></button>
+                        <button class="delete-btn" title="削除"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                    <div class="task-title"><input type="checkbox" class="t-chk" value="${escapeHtml(t.id)}"> ${escapeHtml(t.title)}</div>
                     <div class="task-meta">
-                        <span><i class="fa-solid fa-flag" style="color:${t.priority=='高'?'#ff4d4d':(t.priority=='中'?'#f97316':'#3b82f6')}"></i> ${t.priority}</span>
-                        <span class="tag">${t.category}</span>
-                        <span><i class="fa-regular fa-clock"></i> ${t.date || '期限なし'}</span>
+                        <span><i class="fa-solid fa-flag" style="color:${t.priority==='高'?'#ff4d4d':(t.priority==='中'?'#f97316':'#3b82f6')}"></i> ${escapeHtml(t.priority)}</span>
+                        <span class="tag">${escapeHtml(t.category || 'なし')}</span>
+                        <span><i class="fa-regular fa-clock"></i> ${escapeHtml(t.date || '期限なし')}</span>
+                        ${t.memo ? `<span><i class="fa-solid fa-note-sticky"></i> メモあり</span>` : ''}
                     </div>
                     <div class="st-group">
-                        <button class="st-btn ${t.status=='未着手'?'active':''}" data-id="${t.id}" data-st="未着手">未着手</button>
-                        <button class="st-btn ${t.status=='進行中'?'active':''}" data-id="${t.id}" data-st="進行中">進行中</button>
-                        <button class="st-btn ${t.status=='完了'?'active':''}" data-id="${t.id}" data-st="完了">完了</button>
+                        <button class="st-btn ${t.status==='未着手'?'active':''}" data-id="${escapeHtml(t.id)}" data-st="未着手">未着手</button>
+                        <button class="st-btn ${t.status==='進行中'?'active':''}" data-id="${escapeHtml(t.id)}" data-st="進行中">進行中</button>
+                        <button class="st-btn ${t.status==='完了'?'active':''}" data-id="${escapeHtml(t.id)}" data-st="完了">完了</button>
                     </div>
                 </div>`).join('');
             
             // イベント委譲
             target.querySelectorAll('.st-btn').forEach(btn => {
-                btn.onclick = async () => await updateDoc(doc(db, "tasks", btn.dataset.id), { status: btn.dataset.st });
+                btn.onclick = async () => {
+                    try {
+                        await updateDoc(doc(db, "tasks", btn.dataset.id), { status: btn.dataset.st });
+                    } catch (e) {
+                        alert('ステータス更新に失敗しました');
+                    }
+                };
             });
             target.querySelectorAll('.t-chk').forEach(chk => {
                 chk.onchange = upBulkUI;
             });
+            target.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.onclick = () => {
+                    const card = btn.closest('.task-card');
+                    const taskId = card.dataset.id;
+                    const task = tasks.find(t => t.id === taskId);
+                    if (task) openEditModal(task);
+                };
+            });
+            target.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.onclick = async () => {
+                    const card = btn.closest('.task-card');
+                    const taskId = card.dataset.id;
+                    if (confirm('このタスクを削除しますか？')) {
+                        try {
+                            await deleteDoc(doc(db, "tasks", taskId));
+                        } catch (e) {
+                            alert('削除に失敗しました');
+                        }
+                    }
+                };
+            });
+        }
+
+        // --- タスク編集モーダルを開く ---
+        function openEditModal(task) {
+            document.getElementById('modal-title').textContent = 'タスクを編集';
+            document.getElementById('edit-task-id').value = task.id;
+            document.getElementById('t-title').value = task.title || '';
+            document.getElementById('t-pri').value = task.priority || '中';
+            document.getElementById('t-cat-sel').value = task.category || 'なし';
+            document.getElementById('t-memo').value = task.memo || '';
+            
+            if (task.date && task.date !== '期限なし') {
+                document.getElementById('t-has-date').checked = true;
+                document.getElementById('t-picker').value = task.date;
+                document.getElementById('t-mmdd').value = '';
+            } else {
+                document.getElementById('t-has-date').checked = false;
+                document.getElementById('t-picker').value = '';
+                document.getElementById('t-mmdd').value = '';
+            }
+            
+            openM('new-modal');
         }
 
         // --- カレンダー表示 ---
@@ -296,29 +451,47 @@
             for(let i=1; i<=endDate; i++) {
                 const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
                 const dayTasks = f.filter(t => t.date === dateStr);
-                html += `<div class="cal-day">
-                    <span class="cal-num" style="font-weight:700; font-size:12px; color:${new Date(year, month, i).getDay()==0?'var(--red)':''}">${i}</span>
-                    <div style="margin-top:5px;">${dayTasks.map(t => `<div class="cal-task" title="${t.title}">${t.title}</div>`).join('')}</div>
+                const isToday = new Date().toISOString().slice(0,10) === dateStr;
+                html += `<div class="cal-day" style="${isToday ? 'background:#f0efff;' : ''}">
+                    <span class="cal-num" style="font-weight:700; font-size:12px; color:${new Date(year, month, i).getDay()===0?'var(--red)':''}">${i}</span>
+                    <div style="margin-top:5px;">${dayTasks.map(t => `<div class="cal-task" data-id="${escapeHtml(t.id)}" title="${escapeHtml(t.title)}">${escapeHtml(t.title)}</div>`).join('')}</div>
                 </div>`;
             }
             target.innerHTML = html;
             document.getElementById('cal-prev').onclick = () => { calDate.setMonth(calDate.getMonth() - 1); refreshUI(); };
             document.getElementById('cal-next').onclick = () => { calDate.setMonth(calDate.getMonth() + 1); refreshUI(); };
+            
+            // カレンダー内タスクのクリックで編集
+            target.querySelectorAll('.cal-task').forEach(el => {
+                el.onclick = () => {
+                    const task = tasks.find(t => t.id === el.dataset.id);
+                    if (task) openEditModal(task);
+                };
+            });
         }
 
         // --- カテゴリUI同期 ---
         function syncCatUI() {
-            document.getElementById('cat-box').innerHTML = cats.map(c => `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #f7fafc;"><span>${c}</span> ${c!=='なし' ? `<i class="fa-solid fa-trash del-cat-btn" data-cat="${c}" style="cursor:pointer; color:#ccc;"></i>` : ''}</div>`).join('');
-            document.querySelectorAll('.del-cat-btn').forEach(btn => {
+            const catBox = document.getElementById('cat-box');
+            catBox.innerHTML = cats.map(c => `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid #f7fafc;"><span>${escapeHtml(c)}</span> ${c!=='なし' ? `<i class="fa-solid fa-trash del-cat-btn" data-cat="${escapeHtml(c)}" style="cursor:pointer; color:#ccc;"></i>` : ''}</div>`).join('');
+            catBox.querySelectorAll('.del-cat-btn').forEach(btn => {
                 btn.onclick = async () => {
                     if (!confirm(`カテゴリ「${btn.dataset.cat}」を削除しますか？`)) return;
                     cats = cats.filter(c => c !== btn.dataset.cat);
-                    await updateDoc(doc(db, "users", userNow.uid), { categories: cats });
-                    syncCatUI();
+                    try {
+                        await updateDoc(doc(db, "users", userNow.uid), { categories: cats });
+                        syncCatUI();
+                    } catch (e) {
+                        alert('カテゴリ削除に失敗しました');
+                    }
                 };
             });
             [document.getElementById('t-cat-sel'), document.getElementById('f-cat')].forEach(s => {
-                s.innerHTML = (s.id == 'f-cat' ? '<option value="">全カテゴリ</option>' : '') + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+                if (s) {
+                    const currentValue = s.value;
+                    s.innerHTML = (s.id === 'f-cat' ? '<option value="">全カテゴリ</option>' : '') + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+                    if (currentValue) s.value = currentValue;
+                }
             });
         }
 
@@ -326,16 +499,34 @@
         function upBulkUI() {
             const n = document.querySelectorAll('.t-chk:checked').length;
             document.getElementById('bulk-ui').style.display = n ? 'flex' : 'none';
-            document.getElementById('bulk-info').innerText = `${n} 件選択中`;
+            document.getElementById('bulk-info').textContent = `${n} 件選択中`;
         }
 
         // --- イベントリスナー設定 ---
-        document.querySelectorAll('.btn-close, #overlay').forEach(el => el.onclick = closeAll);
+        document.querySelectorAll('.btn-close').forEach(el => el.onclick = closeAll);
+        document.getElementById('overlay').onclick = closeAll;
 
-        document.getElementById('btn-open-new').onclick = () => openM('new-modal');
+        document.getElementById('btn-open-new').onclick = () => {
+            document.getElementById('modal-title').textContent = '新規タスク作成';
+            document.getElementById('edit-task-id').value = '';
+            document.getElementById('t-title').value = '';
+            document.getElementById('t-pri').value = '中';
+            document.getElementById('t-cat-sel').value = cats[0] || 'なし';
+            document.getElementById('t-has-date').checked = true;
+            document.getElementById('t-mmdd').value = '';
+            document.getElementById('t-picker').value = '';
+            document.getElementById('t-memo').value = '';
+            openM('new-modal');
+        };
         document.getElementById('btn-open-cat').onclick = () => openM('cat-modal');
-        document.getElementById('btn-open-import').onclick = () => openM('import-modal');
-        document.getElementById('btn-open-bulk').onclick = () => openM('bulk-modal');
+        document.getElementById('btn-open-import').onclick = () => {
+            document.getElementById('import-v').value = '';
+            openM('import-modal');
+        };
+        document.getElementById('btn-open-bulk').onclick = () => {
+            document.getElementById('bulk-v').value = '';
+            openM('bulk-modal');
+        };
 
         document.getElementById('btn-list-view').onclick = () => {
             currentView = 'list';
@@ -354,63 +545,125 @@
             refreshUI();
         };
 
-        // タスク保存
+        // タスク保存（新規・編集）
         document.getElementById('save-exec').onclick = async () => {
             const title = document.getElementById('t-title').value.trim();
-            if (!title) return alert("タイトル必須");
+            if (!title) return alert("タイトルを入力してください");
+            
             let d = "期限なし";
             if (document.getElementById('t-has-date').checked) {
-                const mmdd = document.getElementById('t-mmdd').value;
-                if (mmdd && mmdd.length == 4) d = `${new Date().getFullYear()}-${mmdd.slice(0,2)}-${mmdd.slice(2,4)}`;
-                else d = document.getElementById('t-picker').value || "期限なし";
+                const mmdd = document.getElementById('t-mmdd').value.trim();
+                if (mmdd && /^\d{4}$/.test(mmdd)) {
+                    const mm = mmdd.slice(0,2);
+                    const dd = mmdd.slice(2,4);
+                    if (parseInt(mm) >= 1 && parseInt(mm) <= 12 && parseInt(dd) >= 1 && parseInt(dd) <= 31) {
+                        d = `${new Date().getFullYear()}-${mm}-${dd}`;
+                    }
+                } else if (document.getElementById('t-picker').value) {
+                    d = document.getElementById('t-picker').value;
+                }
             }
+            
+            const taskData = { 
+                uid: userNow.uid, 
+                title, 
+                priority: document.getElementById('t-pri').value || '中', 
+                category: document.getElementById('t-cat-sel').value || 'なし', 
+                date: d, 
+                memo: document.getElementById('t-memo').value.trim(),
+                updatedAt: new Date()
+            };
+            
+            const editId = document.getElementById('edit-task-id').value;
+            
             try {
-                await addDoc(collection(db, "tasks"), { uid: userNow.uid, title, priority: document.getElementById('t-pri').value, category: document.getElementById('t-cat-sel').value, date: d, status: "未着手", createdAt: new Date() });
-                document.getElementById('t-title').value = ""; document.getElementById('t-mmdd').value = ""; document.getElementById('t-picker').value = ""; document.getElementById('t-memo').value = "";
+                if (editId) {
+                    // 編集
+                    await updateDoc(doc(db, "tasks", editId), taskData);
+                } else {
+                    // 新規作成
+                    taskData.status = "未着手";
+                    taskData.createdAt = new Date();
+                    await addDoc(collection(db, "tasks"), taskData);
+                }
                 closeAll();
-            } catch (e) { alert("保存失敗: " + e.message); }
+            } catch (e) { 
+                alert("保存に失敗しました: " + e.message); 
+            }
         };
 
         // カテゴリ追加
         document.getElementById('btn-add-cat').onclick = async () => {
             const v = document.getElementById('new-cat-v').value.trim();
-            if(!v || cats.includes(v)) return;
+            if (!v) return alert('カテゴリ名を入力してください');
+            if (cats.includes(v)) return alert('同じ名前のカテゴリが既に存在します');
             cats.push(v);
-            await updateDoc(doc(db, "users", userNow.uid), { categories: cats });
-            document.getElementById('new-cat-v').value = "";
-            syncCatUI();
+            try {
+                await updateDoc(doc(db, "users", userNow.uid), { categories: cats });
+                document.getElementById('new-cat-v').value = "";
+                syncCatUI();
+            } catch (e) {
+                cats.pop();
+                alert('カテゴリ追加に失敗しました');
+            }
         };
 
         // インポート
         document.getElementById('btn-import-exec').onclick = async () => {
             const v = document.getElementById('import-v').value.trim();
-            if (!v) return;
+            if (!v) return alert('インポートするデータを入力してください');
             try {
                 const data = JSON.parse(v);
+                if (!Array.isArray(data)) throw new Error('配列形式で入力してください');
                 const batch = writeBatch(db);
                 data.forEach(t => {
                     const newDoc = doc(collection(db, "tasks"));
-                    batch.set(newDoc, { uid: userNow.uid, title: t.title || "無題", priority: t.priority || "中", category: t.category || "なし", date: t.date || "期限なし", status: t.status || "未着手", createdAt: new Date() });
+                    batch.set(newDoc, { 
+                        uid: userNow.uid, 
+                        title: t.title || "無題", 
+                        priority: t.priority || "中", 
+                        category: t.category || "なし", 
+                        date: t.date || "期限なし", 
+                        status: t.status || "未着手", 
+                        memo: t.memo || "",
+                        createdAt: new Date() 
+                    });
                 });
                 await batch.commit();
-                alert("インポート完了"); closeAll();
-            } catch (e) { alert("失敗: " + e.message); }
+                alert(`${data.length}件のタスクをインポートしました`); 
+                closeAll();
+            } catch (e) { 
+                alert("インポートに失敗しました: " + e.message); 
+            }
         };
 
         // 一括登録
         document.getElementById('btn-bulk-add-exec').onclick = async () => {
             const v = document.getElementById('bulk-v').value.trim();
-            if (!v) return;
+            if (!v) return alert('タスクを入力してください');
             const lines = v.split('\n').map(l => l.trim()).filter(l => l);
+            if (!lines.length) return alert('有効なタスクがありません');
             try {
                 const batch = writeBatch(db);
                 lines.forEach(line => {
                     const newDoc = doc(collection(db, "tasks"));
-                    batch.set(newDoc, { uid: userNow.uid, title: line, priority: "中", category: "なし", date: "期限なし", status: "未着手", createdAt: new Date() });
+                    batch.set(newDoc, { 
+                        uid: userNow.uid, 
+                        title: line, 
+                        priority: "中", 
+                        category: "なし", 
+                        date: "期限なし", 
+                        status: "未着手", 
+                        memo: "",
+                        createdAt: new Date() 
+                    });
                 });
                 await batch.commit();
-                alert("登録完了"); closeAll();
-            } catch (e) { alert("失敗: " + e.message); }
+                alert(`${lines.length}件のタスクを登録しました`); 
+                closeAll();
+            } catch (e) { 
+                alert("登録に失敗しました: " + e.message); 
+            }
         };
 
         // 一括操作
@@ -424,77 +677,165 @@
             const st = document.getElementById('bulk-st').value;
             if (!st) return;
             const ids = Array.from(document.querySelectorAll('.t-chk:checked')).map(c => c.value);
-            const batch = writeBatch(db);
-            ids.forEach(id => batch.update(doc(db, "tasks", id), { status: st }));
-            await batch.commit();
-            document.getElementById('bulk-st').value = ""; upBulkUI();
+            if (!ids.length) return;
+            try {
+                const batch = writeBatch(db);
+                ids.forEach(id => batch.update(doc(db, "tasks", id), { status: st }));
+                await batch.commit();
+                document.querySelectorAll('.t-chk:checked').forEach(c => c.checked = false);
+                document.getElementById('bulk-st').value = ""; 
+                upBulkUI();
+            } catch (e) {
+                alert('ステータス変更に失敗しました');
+            }
         };
         document.getElementById('btn-bulk-delete').onclick = async () => {
             const ids = Array.from(document.querySelectorAll('.t-chk:checked')).map(c => c.value);
-            if (!ids.length || !confirm("削除しますか？")) return;
-            const batch = writeBatch(db);
-            ids.forEach(id => batch.delete(doc(db, "tasks", id)));
-            await batch.commit();
-            upBulkUI();
+            if (!ids.length) return;
+            if (!confirm(`${ids.length}件のタスクを削除しますか？`)) return;
+            try {
+                const batch = writeBatch(db);
+                ids.forEach(id => batch.delete(doc(db, "tasks", id)));
+                await batch.commit();
+                upBulkUI();
+            } catch (e) {
+                alert('削除に失敗しました');
+            }
         };
         document.getElementById('btn-bulk-copy').onclick = async () => {
             const ids = Array.from(document.querySelectorAll('.t-chk:checked')).map(c => c.value);
-            const batch = writeBatch(db);
-            ids.forEach(id => {
-                const t = tasks.find(item => item.id === id);
-                if (t) {
-                    const newDoc = doc(collection(db, "tasks"));
-                    const { id: _, ...data } = t;
-                    batch.set(newDoc, { ...data, title: t.title + " (コピー)", createdAt: new Date() });
-                }
-            });
-            await batch.commit();
-            upBulkUI();
+            if (!ids.length) return;
+            try {
+                const batch = writeBatch(db);
+                ids.forEach(id => {
+                    const t = tasks.find(item => item.id === id);
+                    if (t) {
+                        const newDoc = doc(collection(db, "tasks"));
+                        batch.set(newDoc, { 
+                            uid: t.uid,
+                            title: t.title + " (コピー)", 
+                            priority: t.priority,
+                            category: t.category,
+                            date: t.date,
+                            status: t.status,
+                            memo: t.memo || "",
+                            createdAt: new Date() 
+                        });
+                    }
+                });
+                await batch.commit();
+                document.querySelectorAll('.t-chk:checked').forEach(c => c.checked = false);
+                upBulkUI();
+                alert(`${ids.length}件のタスクを複製しました`);
+            } catch (e) {
+                alert('複製に失敗しました');
+            }
         };
 
         // プロフィール変更
-        const setupEditProfile = (type, title) => {
-            document.getElementById('edit-h').innerText = title;
-            document.getElementById('edit-v').value = "";
+        const setupEditProfile = (type, title, inputType = 'text') => {
+            document.getElementById('edit-h').textContent = title;
+            const editInput = document.getElementById('edit-v');
+            editInput.value = "";
+            editInput.type = inputType;
+            editInput.placeholder = type === 'password' ? '新しいパスワード' : '新しい値を入力';
             openM('edit-profile-modal');
+            
             document.getElementById('edit-exec-btn').onclick = async () => {
-                const v = document.getElementById('edit-v').value.trim();
+                const v = editInput.value.trim();
                 if (!v) return alert("入力してください");
+                
                 try {
-                    if (type == 'email') { await updateEmail(userNow, v); await updateDoc(doc(db, "users", userNow.uid), { email: v }); }
-                    else if (type == 'password') await updatePassword(userNow, v);
-                    else if (type == 'name') { await updateProfile(userNow, { displayName: v }); await updateDoc(doc(db, "users", userNow.uid), { displayName: v }); }
-                    else await updateDoc(doc(db, "users", userNow.uid), { phone: v });
-                    alert("更新成功"); location.reload();
-                } catch(e) { alert(e.message); }
+                    if (type === 'email') { 
+                        await updateEmail(userNow, v); 
+                        await updateDoc(doc(db, "users", userNow.uid), { email: v }); 
+                    }
+                    else if (type === 'password') {
+                        if (v.length < 6) return alert('パスワードは6文字以上で入力してください');
+                        await updatePassword(userNow, v);
+                    }
+                    else if (type === 'name') { 
+                        await updateProfile(userNow, { displayName: v }); 
+                        await updateDoc(doc(db, "users", userNow.uid), { displayName: v }); 
+                    }
+                    else if (type === 'phone') {
+                        await updateDoc(doc(db, "users", userNow.uid), { phone: v });
+                    }
+                    alert("更新しました"); 
+                    closeAll();
+                    if (type === 'name') {
+                        document.getElementById('user-display').textContent = v;
+                    }
+                } catch(e) { 
+                    if (e.code === 'auth/requires-recent-login') {
+                        alert('セキュリティのため、再ログインが必要です。一度ログアウトして再度ログインしてください。');
+                    } else {
+                        alert("更新に失敗しました: " + e.message); 
+                    }
+                }
             };
         };
-        document.getElementById('btn-edit-email').onclick = () => setupEditProfile('email', 'メールアドレス変更');
-        document.getElementById('btn-edit-phone').onclick = () => setupEditProfile('phone', '電話番号変更');
-        document.getElementById('btn-edit-password').onclick = () => setupEditProfile('password', 'パスワード変更');
-        document.getElementById('btn-edit-name').onclick = () => setupEditProfile('name', 'ユーザー名の変更');
+        document.getElementById('btn-edit-email').onclick = () => setupEditProfile('email', 'メールアドレス変更', 'email');
+        document.getElementById('btn-edit-phone').onclick = () => setupEditProfile('phone', '電話番号変更', 'tel');
+        document.getElementById('btn-edit-password').onclick = () => setupEditProfile('password', 'パスワード変更', 'password');
+        document.getElementById('btn-edit-name').onclick = () => setupEditProfile('name', 'ユーザー名の変更', 'text');
 
         // Google連携
         document.getElementById('btn-link-google').onclick = async () => {
             const provider = new GoogleAuthProvider();
             const isLinked = auth.currentUser.providerData.some(p => p.providerId === 'google.com');
+            
             if (isLinked) {
-                if (confirm("連携を解除しますか？")) {
-                    try { await unlink(auth.currentUser, 'google.com'); alert("解除しました"); location.reload(); }
-                    catch (e) { alert("失敗: " + e.message); }
+                // 連携解除
+                if (auth.currentUser.providerData.length <= 1) {
+                    return alert('他のログイン方法がないため、Google連携を解除できません。');
+                }
+                if (confirm("Googleアカウントとの連携を解除しますか？")) {
+                    try { 
+                        await unlink(auth.currentUser, 'google.com'); 
+                        alert("連携を解除しました"); 
+                        document.getElementById('google-link-text').textContent = 'Googleアカウント連携';
+                    }
+                    catch (e) { alert("解除に失敗しました: " + e.message); }
                 }
             } else {
-                try { await linkWithPopup(auth.currentUser, provider); alert("連携しました"); location.reload(); }
-                catch (e) { alert("失敗: " + e.message); }
+                // 連携
+                try { 
+                    await linkWithPopup(auth.currentUser, provider); 
+                    alert("Googleアカウントと連携しました"); 
+                    document.getElementById('google-link-text').textContent = 'Google連携を解除';
+                }
+                catch (e) { 
+                    if (e.code === 'auth/credential-already-in-use') {
+                        alert('このGoogleアカウントは既に別のアカウントに連携されています');
+                    } else {
+                        alert("連携に失敗しました: " + e.message); 
+                    }
+                }
             }
         };
 
-        document.getElementById('btn-logout').onclick = () => signOut(auth);
+        document.getElementById('btn-logout').onclick = async () => {
+            if (confirm('ログアウトしますか？')) {
+                await signOut(auth);
+            }
+        };
+        
+        // 検索・フィルタのイベント
         document.getElementById('q-search').oninput = refreshUI;
         document.getElementById('f-st').onchange = refreshUI;
         document.getElementById('f-pri').onchange = refreshUI;
         document.getElementById('f-cat').onchange = refreshUI;
         document.getElementById('f-sort').onchange = refreshUI;
+
+        // キーボードショートカット
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeAll();
+            if (e.key === 'n' && e.ctrlKey) {
+                e.preventDefault();
+                document.getElementById('btn-open-new').click();
+            }
+        });
     </script>
 </body>
 </html>
