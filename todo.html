@@ -89,7 +89,7 @@
                 <!-- [A] 名前バグ修正：Googleログイン時はGoogleアカウント名を表示 -->
                 <div class="u-name"><span id="user-display">---</span> さん <i class="fa-solid fa-chevron-down" style="font-size:10px;"></i></div>
                 <div class="dropdown">
-                    <!-- [A][D] プロフィール変更機能 -->
+                    <!-- [A] プロフィール変更機能の修正 -->
                     <button onclick="openM('edit-profile', 'email')"><i class="fa-solid fa-envelope"></i> メールアドレス変更</button>
                     <button onclick="openM('edit-profile', 'phone')"><i class="fa-solid fa-phone"></i> 電話番号変更</button>
                     <button onclick="openM('edit-profile', 'password')"><i class="fa-solid fa-key"></i> パスワード変更</button>
@@ -104,8 +104,8 @@
         <div class="h-btns">
             <!-- [B] 全ボタンを有効化 -->
             <button class="h-btn" onclick="openM('cat')"><i class="fa-solid fa-gear"></i> 設定</button>
-            <button class="h-btn" onclick="openM('import')"><i class="fa-solid fa-file-import"></i> インポート</button>
-            <button class="h-btn" onclick="openM('bulk')"><i class="fa-solid fa-list-check"></i> 一括登録</button>
+	            <button class="h-btn" onclick="openM('import')"><i class="fa-solid fa-file-import"></i> インポート</button>
+	            <button class="h-btn" onclick="openM('bulk')"><i class="fa-solid fa-list-check"></i> 一括登録</button>
             <button class="h-btn h-btn-main" onclick="openM('new')"><i class="fa-solid fa-plus"></i> 新規タスク</button>
         </div>
     </header>
@@ -169,13 +169,27 @@
         <div class="modal-btns"><button class="m-btn-c" onclick="closeAll()">キャンセル</button><button class="m-btn-s" id="save-exec">タスクを保存</button></div>
     </div>
 
-    <!-- カテゴリー・インポート・一括登録モーダル -->
-    <div id="cat-modal" class="modal">
-        <h3>カテゴリー管理</h3>
-        <div style="display:flex; gap:10px; margin-bottom:15px;"><input type="text" id="new-cat-v" placeholder="新規名"><button onclick="addCat()" style="background:var(--p); color:white; border:none; padding:10px 20px; border-radius:10px; font-weight:800;">追加</button></div>
-        <div id="cat-box" style="max-height:180px; overflow-y:auto; border:1px solid #eee; border-radius:12px; padding:10px;"></div>
-        <button class="m-btn-c" style="width:100%; margin-top:15px;" onclick="closeAll()">閉じる</button>
-    </div>
+	    <!-- カテゴリー・インポート・一括登録モーダル -->
+	    <div id="cat-modal" class="modal">
+	        <h3>カテゴリー管理</h3>
+	        <div style="display:flex; gap:10px; margin-bottom:15px;"><input type="text" id="new-cat-v" placeholder="新規名"><button onclick="addCat()" style="background:var(--p); color:white; border:none; padding:10px 20px; border-radius:10px; font-weight:800;">追加</button></div>
+	        <div id="cat-box" style="max-height:180px; overflow-y:auto; border:1px solid #eee; border-radius:12px; padding:10px;"></div>
+	        <button class="m-btn-c" style="width:100%; margin-top:15px;" onclick="closeAll()">閉じる</button>
+	    </div>
+
+	    <div id="import-modal" class="modal">
+	        <h3>タスクをインポート</h3>
+	        <p style="font-size:12px; color:var(--gray); margin-bottom:15px;">JSON形式のテキストを貼り付けてください。</p>
+	        <textarea id="import-v" placeholder='[{"title":"タスク1"}, {"title":"タスク2"}]' style="height:150px;"></textarea>
+	        <div class="modal-btns"><button class="m-btn-c" onclick="closeAll()">中止</button><button class="m-btn-s" onclick="importTasks()">インポート実行</button></div>
+	    </div>
+
+	    <div id="bulk-modal" class="modal">
+	        <h3>一括登録</h3>
+	        <p style="font-size:12px; color:var(--gray); margin-bottom:15px;">1行に1タスクずつ入力してください。</p>
+	        <textarea id="bulk-v" placeholder="タスク名1&#13;タスク名2&#13;タスク名3" style="height:150px;"></textarea>
+	        <div class="modal-btns"><button class="m-btn-c" onclick="closeAll()">中止</button><button class="m-btn-s" onclick="bulkAddTasks()">一括登録実行</button></div>
+	    </div>
 
     <div id="edit-profile-modal" class="modal">
         <h3 id="edit-h">設定変更</h3>
@@ -199,8 +213,8 @@
             userNow = u;
             const uDoc = await getDoc(doc(db, "users", u.uid));
             const data = uDoc.data();
-            // [A] Googleログイン時はGoogleのアカウント名を表示 [16]
-            document.getElementById('user-display').innerText = u.displayName || data?.displayName || "ユーザー";
+            // [A] アカウント名表示の修正
+            document.getElementById('user-display').innerText = data?.displayName || u.displayName || "ユーザー";
             if (data?.categories) cats = data.categories;
             syncCatUI();
             listenTasks();
@@ -235,10 +249,27 @@
             let d = "期限なし";
             if (document.getElementById('t-has-date').checked) {
                 const mmdd = document.getElementById('t-mmdd').value;
-                d = (mmdd.length == 4) ? `${new Date().getFullYear()}-${mmdd.slice(0,2)}-${mmdd.slice(2,4)}` : document.getElementById('t-picker').value || "期限なし";
+                if (mmdd && mmdd.length == 4) {
+                    d = `${new Date().getFullYear()}-${mmdd.slice(0,2)}-${mmdd.slice(2,4)}`;
+                } else {
+                    d = document.getElementById('t-picker').value || "期限なし";
+                }
             }
             try {
-                await addDoc(collection(db, "tasks"), { uid: userNow.uid, title, priority: document.getElementById('t-pri').value, category: document.getElementById('t-cat-sel').value, date: d, status: "未着手", createdAt: new Date() });
+                await addDoc(collection(db, "tasks"), { 
+                    uid: userNow.uid, 
+                    title, 
+                    priority: document.getElementById('t-pri').value, 
+                    category: document.getElementById('t-cat-sel').value, 
+                    date: d, 
+                    status: "未着手", 
+                    createdAt: new Date() 
+                });
+                // 入力フィールドをクリア
+                document.getElementById('t-title').value = "";
+                document.getElementById('t-mmdd').value = "";
+                document.getElementById('t-picker').value = "";
+                document.getElementById('t-memo').value = "";
                 closeAll();
             } catch (e) { alert("保存失敗: " + e.message); }
         };
@@ -272,19 +303,40 @@
                 </div>`).join('');
         }
 
-        function renderCalView(f) {
-            const target = document.getElementById('cal-target');
-            target.innerHTML = ["日","月","火","水","木","金","土"].map(d => `<div class="cal-header">${d}</div>`).join('');
-            const now = new Date();
-            const start = new Date(now.getFullYear(), now.getMonth(), 1).getDay();
-            const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-            for(let i=0; i<start; i++) target.innerHTML += `<div class="cal-day"></div>`;
-            for(let i=1; i<=end; i++) {
-                const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
-                const dayTasks = f.filter(t => t.date === dateStr);
-                target.innerHTML += `<div class="cal-day"><span class="cal-num">${i}</span>${dayTasks.map(t => `<div class="cal-task">${t.title}</div>`).join('')}</div>`;
-            }
-        }
+	        let calDate = new Date();
+	        function renderCalView(f) {
+	            const target = document.getElementById('cal-target');
+	            const year = calDate.getFullYear(), month = calDate.getMonth();
+	            
+	            let html = `<div style="grid-column: span 7; display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border-bottom: 1px solid #edf2f7;">
+	                <button onclick="changeMonth(-1)" style="border:none; background:none; cursor:pointer; font-size:18px;"><i class="fa-solid fa-chevron-left"></i></button>
+	                <h3 style="margin:0; font-size:16px;">${year}年 ${month + 1}月</h3>
+	                <button onclick="changeMonth(1)" style="border:none; background:none; cursor:pointer; font-size:18px;"><i class="fa-solid fa-chevron-right"></i></button>
+	            </div>`;
+	            
+	            html += ["日","月","火","水","木","金","土"].map(d => `<div class="cal-header">${d}</div>`).join('');
+	            
+	            const startDay = new Date(year, month, 1).getDay();
+	            const endDate = new Date(year, month + 1, 0).getDate();
+	            
+	            for(let i=0; i<startDay; i++) html += `<div class="cal-day"></div>`;
+	            
+	            for(let i=1; i<=endDate; i++) {
+	                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+	                const dayTasks = f.filter(t => t.date === dateStr);
+	                html += `<div class="cal-day">
+	                    <span class="cal-num" style="font-weight:700; font-size:12px; color:${new Date(year, month, i).getDay()==0?'var(--red)':''}">${i}</span>
+	                    <div style="margin-top:5px;">
+	                        ${dayTasks.map(t => `<div class="cal-task" title="${t.title}">${t.title}</div>`).join('')}
+	                    </div>
+	                </div>`;
+	            }
+	            target.innerHTML = html;
+	        }
+	        window.changeMonth = (diff) => {
+	            calDate.setMonth(calDate.getMonth() + diff);
+	            refreshUI();
+	        };
 
         // 6. [A][B][D] プロフィール変更・カテゴリー・Google連携
         window.openM = (id, type) => {
@@ -293,38 +345,171 @@
             if (id === 'edit-profile') {
                 const map = { email: "メールアドレス変更", phone: "電話番号変更", password: "パスワード変更", name: "ユーザー名の変更" };
                 document.getElementById('edit-h').innerText = map[type];
+                document.getElementById('edit-v').value = ""; // 入力欄をクリア
                 document.getElementById('edit-exec-btn').onclick = async () => {
-                    const v = document.getElementById('edit-v').value;
+                    const v = document.getElementById('edit-v').value.trim();
+                    if (!v) return alert("値を入力してください");
                     try {
-                        if (type == 'email') await updateEmail(userNow, v);
+                        if (type == 'email') {
+                            await updateEmail(userNow, v);
+                            await updateDoc(doc(db, "users", userNow.uid), { email: v });
+                        }
                         else if (type == 'password') await updatePassword(userNow, v);
                         else if (type == 'name') {
                             await updateProfile(userNow, { displayName: v });
                             await updateDoc(doc(db, "users", userNow.uid), { displayName: v });
                         }
                         else await updateDoc(doc(db, "users", userNow.uid), { phone: v });
-                        alert("更新成功"); location.reload();
-                    } catch(e) { alert(e.message); }
+                        alert("更新成功"); 
+                        closeAll();
+                        location.reload();
+                    } catch(e) { 
+                        if (e.code === 'auth/requires-recent-login') {
+                            alert("セキュリティのため、再ログインが必要です。");
+                            logout();
+                        } else {
+                            alert("更新失敗: " + e.message); 
+                        }
+                    }
                 };
             }
         };
 
-        window.linkGoogleAccount = async () => {
-            const provider = new GoogleAuthProvider();
-            try {
-                // [D] 既存アカウントにGoogleをリンク [17, 18]
-                await linkWithPopup(auth.currentUser, provider);
-                alert("Googleアカウントと連携しました");
-            } catch (e) { alert("連携失敗: " + e.message); }
-        };
+	        window.linkGoogleAccount = async () => {
+	            const provider = new GoogleAuthProvider();
+	            const isLinked = auth.currentUser.providerData.some(p => p.providerId === 'google.com');
+	            
+	            if (isLinked) {
+	                if (confirm("Googleアカウントとの連携を解除しますか？")) {
+	                    try {
+	                        await auth.currentUser.unlink('google.com');
+	                        alert("連携を解除しました");
+	                        location.reload();
+	                    } catch (e) { alert("解除失敗: " + e.message); }
+	                }
+	            } else {
+	                try {
+	                    await linkWithPopup(auth.currentUser, provider);
+	                    alert("Googleアカウントと連携しました");
+	                    location.reload();
+	                } catch (e) { alert("連携失敗: " + e.message); }
+	            }
+	        };
 
-        window.addCat = async () => {
-            const v = document.getElementById('new-cat-v').value.trim();
-            if(!v || cats.includes(v)) return;
-            cats.push(v);
-            await updateDoc(doc(db, "users", userNow.uid), { categories: cats });
-            syncCatUI();
-        };
+	        window.addCat = async () => {
+	            const v = document.getElementById('new-cat-v').value.trim();
+	            if(!v || cats.includes(v)) return;
+	            cats.push(v);
+	            await updateDoc(doc(db, "users", userNow.uid), { categories: cats });
+	            document.getElementById('new-cat-v').value = "";
+	            syncCatUI();
+	        };
+
+	        window.delCat = async (c) => {
+	            if (c === "なし") return alert("このカテゴリは削除できません");
+	            if (!confirm(`カテゴリ「${c}」を削除しますか？`)) return;
+	            cats = cats.filter(item => item !== c);
+	            await updateDoc(doc(db, "users", userNow.uid), { categories: cats });
+	            syncCatUI();
+	        };
+
+	        window.importTasks = async () => {
+	            const v = document.getElementById('import-v').value.trim();
+	            if (!v) return;
+	            try {
+	                const data = JSON.parse(v);
+	                if (!Array.isArray(data)) throw new Error("配列形式で入力してください");
+	                const batch = writeBatch(db);
+	                data.forEach(t => {
+	                    const newDoc = doc(collection(db, "tasks"));
+	                    batch.set(newDoc, { 
+	                        uid: userNow.uid, 
+	                        title: t.title || "無題のタスク", 
+	                        priority: t.priority || "中", 
+	                        category: t.category || "なし", 
+	                        date: t.date || "期限なし", 
+	                        status: t.status || "未着手", 
+	                        createdAt: new Date() 
+	                    });
+	                });
+	                await batch.commit();
+	                alert(`${data.length}件のタスクをインポートしました`);
+	                closeAll();
+	            } catch (e) { alert("インポート失敗: " + e.message); }
+	        };
+
+	        window.bulkAddTasks = async () => {
+	            const v = document.getElementById('bulk-v').value.trim();
+	            if (!v) return;
+	            const lines = v.split('\n').map(l => l.trim()).filter(l => l);
+	            try {
+	                const batch = writeBatch(db);
+	                lines.forEach(line => {
+	                    const newDoc = doc(collection(db, "tasks"));
+	                    batch.set(newDoc, { 
+	                        uid: userNow.uid, 
+	                        title: line, 
+	                        priority: "中", 
+	                        category: "なし", 
+	                        date: "期限なし", 
+	                        status: "未着手", 
+	                        createdAt: new Date() 
+	                    });
+	                });
+	                await batch.commit();
+	                alert(`${lines.length}件のタスクを登録しました`);
+	                closeAll();
+	            } catch (e) { alert("一括登録失敗: " + e.message); }
+	        };
+
+	        window.selectAllTasks = () => {
+	            const chks = document.querySelectorAll('.t-chk');
+	            const allChecked = Array.from(chks).every(c => c.checked);
+	            chks.forEach(c => c.checked = !allChecked);
+	            upBulkUI();
+	        };
+
+	        window.bulkUpdateStatus = async () => {
+	            const st = document.getElementById('bulk-st').value;
+	            if (!st) return;
+	            const ids = Array.from(document.querySelectorAll('.t-chk:checked')).map(c => c.value);
+	            try {
+	                const batch = writeBatch(db);
+	                ids.forEach(id => batch.update(doc(db, "tasks", id), { status: st }));
+	                await batch.commit();
+	                document.getElementById('bulk-st').value = "";
+	                upBulkUI();
+	            } catch (e) { alert("一括更新失敗: " + e.message); }
+	        };
+
+	        window.bulkDelete = async () => {
+	            const ids = Array.from(document.querySelectorAll('.t-chk:checked')).map(c => c.value);
+	            if (!ids.length || !confirm(`${ids.length}件のタスクを削除しますか？`)) return;
+	            try {
+	                const batch = writeBatch(db);
+	                ids.forEach(id => batch.delete(doc(db, "tasks", id)));
+	                await batch.commit();
+	                upBulkUI();
+	            } catch (e) { alert("一括削除失敗: " + e.message); }
+	        };
+
+	        window.bulkCopy = async () => {
+	            const ids = Array.from(document.querySelectorAll('.t-chk:checked')).map(c => c.value);
+	            if (!ids.length) return;
+	            try {
+	                const batch = writeBatch(db);
+	                for (const id of ids) {
+	                    const t = tasks.find(item => item.id === id);
+	                    if (t) {
+	                        const newDoc = doc(collection(db, "tasks"));
+	                        const { id: _, ...data } = t;
+	                        batch.set(newDoc, { ...data, title: t.title + " (コピー)", createdAt: new Date() });
+	                    }
+	                }
+	                await batch.commit();
+	                upBulkUI();
+	            } catch (e) { alert("一括複製失敗: " + e.message); }
+	        };
 
         function syncCatUI() {
             document.getElementById('cat-box').innerHTML = cats.map(c => `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #f7fafc;"><span>${c}</span> <i class="fa-solid fa-trash" onclick="delCat('${c}')" style="cursor:pointer; color:#ccc;"></i></div>`).join('');
