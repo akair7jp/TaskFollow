@@ -2,70 +2,284 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TaskFollow - 新規登録</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        :root { --primary: #5b50f2; --bg: #f8f9fc; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        :root { --primary: #5b50f2; --bg: #f8f9fc; --error: #e53e3e; --success: #38a169; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
         .card { background: white; padding: 48px; border-radius: 2.5rem; width: 420px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
         h1 { color: var(--primary); font-size: 32px; margin: 0; font-weight: 700; }
         .sub { font-size: 14px; color: #888; margin: 12px 0 30px; }
-        input { width: 100%; padding: 14px; margin-bottom: 15px; border: 1px solid #eee; border-radius: 0.75rem; box-sizing: border-box; background: #fafafa; font-family: inherit; }
-        .btn-main { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; border-radius: 0.75rem; font-weight: 700; cursor: pointer; }
+        label { display: block; text-align: left; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #555; }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        input { width: 100%; padding: 14px; border: 1px solid #eee; border-radius: 0.75rem; box-sizing: border-box; background: #fafafa; font-family: inherit; font-size: 15px; transition: border-color 0.2s; }
+        input:focus { outline: none; border-color: var(--primary); }
+        input.error { border-color: var(--error); }
+        .hint { font-size: 11px; color: #999; margin-top: 4px; }
+        .btn-main { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; border-radius: 0.75rem; font-weight: 700; cursor: pointer; font-size: 16px; transition: opacity 0.2s; margin-top: 10px; }
+        .btn-main:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-main:hover:not(:disabled) { opacity: 0.9; }
         .sep { color: #ccc; margin: 20px 0; font-size: 12px; display: flex; align-items: center; gap: 10px; }
         .sep::before, .sep::after { content: ""; flex: 1; height: 1px; background: #eee; }
-        #recaptcha-container { margin-bottom: 20px; }
+        .g-btn { background: white; border: 1px solid #eee; padding: 14px; border-radius: 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; font-size: 14px; font-weight: 600; transition: background 0.2s; }
+        .g-btn:hover { background: #f8f9fc; }
+        .g-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .error-msg { color: var(--error); font-size: 13px; margin-bottom: 15px; display: none; text-align: left; background: #fff5f5; padding: 12px; border-radius: 8px; border: 1px solid #fed7d7; }
+        .loading { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.8s linear infinite; margin-right: 8px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .password-strength { height: 4px; border-radius: 2px; margin-top: 8px; transition: all 0.3s; }
+        .strength-weak { background: var(--error); width: 33%; }
+        .strength-medium { background: #f6ad55; width: 66%; }
+        .strength-strong { background: var(--success); width: 100%; }
     </style>
 </head>
 <body>
     <div class="card">
         <h1>TaskFollow</h1>
         <p class="sub">あなたのタスクを整理して、効率的に管理しましょう</p>
-        <input type="text" id="s-name" placeholder="ユーザー名 (必須)">
-        <input type="email" id="s-email" placeholder="メールアドレス *">
-        <input type="tel" id="s-phone" placeholder="電話番号 (忘却用) *">
-        <input type="password" id="s-pw" placeholder="パスワード">
-        <input type="password" id="s-pw-conf" placeholder="パスワード (再確認)">
         
-        <div id="recaptcha-container"></div> <!-- reCAPTCHA 復元 [5] -->
+        <div id="error-msg" class="error-msg"></div>
+        
+        <div class="input-group">
+            <label>ユーザー名 <span style="color:var(--error);">*</span></label>
+            <input type="text" id="s-name" placeholder="表示名を入力" autocomplete="name">
+        </div>
+        
+        <div class="input-group">
+            <label>メールアドレス <span style="color:var(--error);">*</span></label>
+            <input type="email" id="s-email" placeholder="example@mail.com" autocomplete="email">
+        </div>
+        
+        <div class="input-group">
+            <label>電話番号（任意）</label>
+            <input type="tel" id="s-phone" placeholder="090-1234-5678" autocomplete="tel">
+            <div class="hint">パスワード忘却時の本人確認に使用します</div>
+        </div>
+        
+        <div class="input-group">
+            <label>パスワード <span style="color:var(--error);">*</span></label>
+            <input type="password" id="s-pw" placeholder="8文字以上で入力" autocomplete="new-password">
+            <div id="pw-strength" class="password-strength"></div>
+            <div class="hint">英数字を含む8文字以上を推奨</div>
+        </div>
+        
+        <div class="input-group">
+            <label>パスワード（確認） <span style="color:var(--error);">*</span></label>
+            <input type="password" id="s-pw-conf" placeholder="パスワードを再入力" autocomplete="new-password">
+        </div>
 
         <button class="btn-main" id="signup-exec">アカウントを作成する</button>
+        
         <div class="sep">または</div>
-        <button class="btn-main" id="g-signup" style="background:#fff; color:#444; border:1px solid #eee;">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" style="vertical-align:middle; margin-right:8px;"> Google アカウントを使用
+        
+        <button class="g-btn" id="g-signup">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" alt="Google"> Google アカウントを使用
         </button>
+        
         <a href="index.html" style="display:block; margin-top:20px; color:#888; font-size:13px; text-decoration:none; font-weight:600;">ログインに戻る</a>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, RecaptchaVerifier } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-        const config = { apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff" };
-        const app = initializeApp(config);
+        const firebaseConfig = { 
+            apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", 
+            authDomain: "taskfollow-b70ff.firebaseapp.com", 
+            projectId: "taskfollow-b70ff" 
+        };
+        const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // reCAPTCHA 初期化 [5]
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'normal' });
+        // DOM要素
+        const nameInput = document.getElementById('s-name');
+        const emailInput = document.getElementById('s-email');
+        const phoneInput = document.getElementById('s-phone');
+        const pwInput = document.getElementById('s-pw');
+        const pwConfInput = document.getElementById('s-pw-conf');
+        const signupBtn = document.getElementById('signup-exec');
+        const gSignupBtn = document.getElementById('g-signup');
+        const errorMsg = document.getElementById('error-msg');
+        const pwStrength = document.getElementById('pw-strength');
 
-        document.getElementById('signup-exec').onclick = async () => {
-            const name = document.getElementById('s-name').value;
-            const email = document.getElementById('s-email').value;
-            const pw = document.getElementById('s-pw').value;
-            if (pw !== document.getElementById('s-pw-conf').value) return alert("パスワード不一致");
+        // 既にログイン済みならリダイレクト
+        onAuthStateChanged(auth, user => {
+            if (user) window.location.href = "todo.html";
+        });
+
+        // エラー表示
+        const showError = (msg) => {
+            errorMsg.textContent = msg;
+            errorMsg.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+        const hideError = () => {
+            errorMsg.style.display = 'none';
+        };
+
+        // ローディング状態の切り替え
+        const setLoading = (btn, loading, text) => {
+            btn.disabled = loading;
+            btn.innerHTML = loading ? `<span class="loading"></span>${text}` : text;
+        };
+
+        // パスワード強度チェック
+        const checkPasswordStrength = (pw) => {
+            if (!pw) {
+                pwStrength.className = 'password-strength';
+                return;
+            }
+            let score = 0;
+            if (pw.length >= 8) score++;
+            if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
+            if (/\d/.test(pw)) score++;
+            if (/[^a-zA-Z0-9]/.test(pw)) score++;
+
+            if (score <= 1) pwStrength.className = 'password-strength strength-weak';
+            else if (score <= 2) pwStrength.className = 'password-strength strength-medium';
+            else pwStrength.className = 'password-strength strength-strong';
+        };
+
+        pwInput.addEventListener('input', () => checkPasswordStrength(pwInput.value));
+
+        // 入力フィールドのエラー状態をクリア
+        const clearErrors = () => {
+            hideError();
+            [nameInput, emailInput, pwInput, pwConfInput].forEach(el => el.classList.remove('error'));
+        };
+
+        // バリデーション
+        const validateInputs = () => {
+            clearErrors();
+
+            const name = nameInput.value.trim();
+            const email = emailInput.value.trim();
+            const pw = pwInput.value;
+            const pwConf = pwConfInput.value;
+
+            if (!name) {
+                nameInput.classList.add('error');
+                showError('ユーザー名を入力してください');
+                return false;
+            }
+            if (name.length < 2) {
+                nameInput.classList.add('error');
+                showError('ユーザー名は2文字以上で入力してください');
+                return false;
+            }
+            if (!email) {
+                emailInput.classList.add('error');
+                showError('メールアドレスを入力してください');
+                return false;
+            }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                emailInput.classList.add('error');
+                showError('有効なメールアドレスを入力してください');
+                return false;
+            }
+            if (!pw) {
+                pwInput.classList.add('error');
+                showError('パスワードを入力してください');
+                return false;
+            }
+            if (pw.length < 6) {
+                pwInput.classList.add('error');
+                showError('パスワードは6文字以上で入力してください');
+                return false;
+            }
+            if (pw !== pwConf) {
+                pwConfInput.classList.add('error');
+                showError('パスワードが一致しません');
+                return false;
+            }
+            return true;
+        };
+
+        // Firebaseエラーメッセージの日本語化
+        const getErrorMessage = (code) => {
+            const messages = {
+                'auth/email-already-in-use': 'このメールアドレスは既に使用されています',
+                'auth/invalid-email': 'メールアドレスの形式が正しくありません',
+                'auth/operation-not-allowed': 'この操作は許可されていません',
+                'auth/weak-password': 'パスワードが弱すぎます。より強力なパスワードを設定してください',
+                'auth/popup-closed-by-user': '登録がキャンセルされました',
+                'auth/popup-blocked': 'ポップアップがブロックされました。ポップアップを許可してください',
+                'auth/network-request-failed': 'ネットワークエラーが発生しました'
+            };
+            return messages[code] || '登録に失敗しました';
+        };
+
+        // 電話番号のフォーマット
+        const formatPhone = (phone) => {
+            return phone.replace(/[^\d]/g, '');
+        };
+
+        // メール登録
+        signupBtn.onclick = async () => {
+            if (!validateInputs()) return;
+
+            setLoading(signupBtn, true, '登録中...');
+            hideError();
+
             try {
-                const res = await createUserWithEmailAndPassword(auth, email, pw);
-                await setDoc(doc(db, "users", res.user.uid), { displayName: name, phone: document.getElementById('s-phone').value, email: email });
+                const res = await createUserWithEmailAndPassword(auth, emailInput.value.trim(), pwInput.value);
+                
+                // Firebase Authのプロフィールを更新
+                await updateProfile(res.user, { displayName: nameInput.value.trim() });
+                
+                // Firestoreにユーザー情報を保存
+                await setDoc(doc(db, "users", res.user.uid), { 
+                    displayName: nameInput.value.trim(), 
+                    phone: formatPhone(phoneInput.value), 
+                    email: emailInput.value.trim(),
+                    categories: ["なし", "仕事", "プライベート"],
+                    createdAt: new Date()
+                });
+                
                 window.location.href = "todo.html";
-            } catch (e) { alert(e.message); }
+            } catch (e) {
+                showError(getErrorMessage(e.code));
+                setLoading(signupBtn, false, 'アカウントを作成する');
+            }
         };
 
-        document.getElementById('g-signup').onclick = async () => {
-            await signInWithPopup(auth, new GoogleAuthProvider());
-            window.location.href = "todo.html";
+        // Google登録
+        gSignupBtn.onclick = async () => {
+            setLoading(gSignupBtn, true, '登録中...');
+            hideError();
+
+            try {
+                const result = await signInWithPopup(auth, new GoogleAuthProvider());
+                
+                // Firestoreにユーザー情報がなければ作成
+                const userDoc = await getDoc(doc(db, "users", result.user.uid));
+                if (!userDoc.exists()) {
+                    await setDoc(doc(db, "users", result.user.uid), {
+                        displayName: result.user.displayName || "ユーザー",
+                        email: result.user.email,
+                        phone: "",
+                        categories: ["なし", "仕事", "プライベート"],
+                        createdAt: new Date()
+                    });
+                }
+                
+                window.location.href = "todo.html";
+            } catch (e) {
+                showError(getErrorMessage(e.code));
+                setLoading(gSignupBtn, false, '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" alt="Google"> Google アカウントを使用');
+            }
         };
+
+        // Enterキーで次のフィールドへ移動
+        nameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') emailInput.focus(); });
+        emailInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') phoneInput.focus(); });
+        phoneInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') pwInput.focus(); });
+        pwInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') pwConfInput.focus(); });
+        pwConfInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') signupBtn.click(); });
     </script>
 </body>
 </html>
