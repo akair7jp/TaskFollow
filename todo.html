@@ -62,15 +62,26 @@
         .st-btn { padding: 8px 22px; border-radius: 20px; border: 1px solid #edf2f7; background: #f8fafc; font-size: 13px; font-weight: 700; cursor: pointer; color: var(--gray); transition: all 0.2s; }
         .st-btn:hover { background: #edf2f7; }
         .st-btn.active { background: var(--p); color: white; border-color: var(--p); }
-        .task-actions { position: absolute; top: 28px; right: 35px; display: flex; gap: 8px; }
-        .task-actions button { background: none; border: none; cursor: pointer; color: #cbd5e0; font-size: 16px; padding: 5px; transition: color 0.2s; }
-        .task-actions button:hover { color: var(--gray); }
-        .task-actions button.delete-btn:hover { color: var(--red); }
+        
+        /* タスクメニュー（3点メニュー） */
+        .task-menu-wrap { position: absolute; top: 28px; right: 35px; }
+        .task-menu-btn { background: none; border: none; cursor: pointer; color: #cbd5e0; font-size: 18px; padding: 8px; border-radius: 8px; transition: all 0.2s; }
+        .task-menu-btn:hover { background: #f7fafc; color: var(--gray); }
+        .task-menu { display: none; position: absolute; top: 100%; right: 0; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-radius: 12px; padding: 8px; min-width: 150px; z-index: 50; }
+        .task-menu.show { display: block; }
+        .task-menu button { width: 100%; text-align: left; padding: 10px 15px; border: none; background: none; font-size: 13px; cursor: pointer; border-radius: 8px; display: flex; align-items: center; gap: 10px; color: #4a5568; font-family: inherit; }
+        .task-menu button:hover { background: #f7fafc; }
+        .task-menu button.delete-action { color: var(--red); }
+        .task-menu button.delete-action:hover { background: #fff5f5; }
 
         /* カレンダー表示 */
         #cal-view-area { padding: 0 60px; display: none; }
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #edf2f7; border: 1px solid #edf2f7; border-radius: 1rem; overflow: hidden; }
-        .cal-day { background: white; min-height: 120px; padding: 10px; border: 1px solid #f8f9fc; }
+        .cal-nav { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: white; border: 1px solid #edf2f7; border-radius: 1rem 1rem 0 0; margin-bottom: -1px; }
+        .cal-nav button { border: none; background: none; cursor: pointer; font-size: 18px; color: var(--gray); padding: 8px 12px; border-radius: 8px; }
+        .cal-nav button:hover { background: #f7fafc; }
+        .cal-nav h3 { margin: 0; font-size: 16px; font-weight: 800; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #edf2f7; border: 1px solid #edf2f7; border-radius: 0 0 1rem 1rem; overflow: hidden; }
+        .cal-day { background: white; min-height: 120px; padding: 10px; }
         .cal-header { background: #f8fafc; padding: 15px; text-align: center; font-weight: 800; font-size: 13px; }
         .cal-task { font-size: 10px; background: #f0efff; color: var(--p); padding: 3px 6px; border-radius: 4px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; cursor: pointer; }
         .cal-task:hover { background: #e0dfff; }
@@ -89,6 +100,14 @@
         .m-btn-s:hover { opacity: 0.9; }
         .m-btn-s:disabled { opacity: 0.6; cursor: not-allowed; }
 
+        /* ファイルアップロード */
+        .file-upload-area { border: 2px dashed #e2e8f0; border-radius: 1rem; padding: 30px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 15px; }
+        .file-upload-area:hover { border-color: var(--p); background: #f8f9fc; }
+        .file-upload-area.dragover { border-color: var(--p); background: #f0efff; }
+        .file-upload-area i { font-size: 32px; color: #cbd5e0; margin-bottom: 10px; }
+        .file-upload-area p { margin: 0; color: var(--gray); font-size: 13px; }
+        .file-upload-area input[type="file"] { display: none; }
+
         .hidden { display: none !important; }
         .empty-state { text-align: center; padding: 100px 0; color: #cbd5e0; font-weight: 800; font-size: 18px; }
         
@@ -96,6 +115,10 @@
         .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 3000; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 15px; }
         .spinner { width: 40px; height: 40px; border: 3px solid #edf2f7; border-top-color: var(--p); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* フォーマットヘルプ */
+        .format-help { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 10px; padding: 15px; margin-bottom: 15px; font-size: 12px; color: #0369a1; }
+        .format-help code { background: #e0f2fe; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
 
         /* レスポンシブ */
         @media (max-width: 768px) {
@@ -153,7 +176,7 @@
     <div class="bulk-bar" id="bulk-ui">
         <div><button id="btn-select-all" style="background:none; border:none; color:white; font-weight:800; cursor:pointer;">すべて選択</button> <span id="bulk-info" style="margin-left:15px;">0 件選択中</span></div>
         <div class="bulk-btns">
-            <select id="bulk-st"><option value="">状態変更</option><option value="未着手">未着手</option><option value="進行中">進行中</option><option value="完了">完了</option></select>
+            <select id="bulk-pri"><option value="">優先度変更</option><option value="高">高</option><option value="中">中</option><option value="低">低</option></select>
             <button id="btn-bulk-copy">一括複製</button>
             <button id="btn-bulk-delete" style="background:var(--red);">一括削除</button>
         </div>
@@ -175,7 +198,14 @@
     </div>
 
     <div id="list-view-area"><div id="list-target"></div></div>
-    <div id="cal-view-area"><div id="cal-target" class="cal-grid"></div></div>
+    <div id="cal-view-area">
+        <div class="cal-nav">
+            <button id="cal-prev"><i class="fa-solid fa-chevron-left"></i></button>
+            <h3 id="cal-month-label">2024年 1月</h3>
+            <button id="cal-next"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+        <div id="cal-target" class="cal-grid"></div>
+    </div>
 
     <!-- モーダル・オーバーレイ -->
     <div id="overlay" class="overlay"></div>
@@ -208,19 +238,36 @@
         <button class="m-btn-c btn-close" style="width:100%; margin-top:15px;">閉じる</button>
     </div>
 
-    <!-- インポートモーダル -->
+    <!-- インポートモーダル（CSV/JSON対応） -->
     <div id="import-modal" class="modal">
         <h3>タスクをインポート</h3>
-        <p style="font-size:12px; color:var(--gray); margin-bottom:15px;">JSON形式のテキストを貼り付けてください。</p>
-        <textarea id="import-v" placeholder='[{"title":"タスク1","priority":"高","category":"仕事"}]' style="height:150px;"></textarea>
+        <div class="format-help">
+            <strong>対応形式:</strong> CSV または JSON<br>
+            <strong>CSV形式:</strong> <code>タイトル,メモ,優先度,カテゴリー,日付(YYYY-MM-DD)</code><br>
+            <strong>JSON形式:</strong> <code>[{"title":"タスク名","memo":"メモ","priority":"高","category":"仕事","date":"2024-01-15"}]</code>
+        </div>
+        <div class="file-upload-area" id="file-upload-area">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <p>クリックまたはドラッグ＆ドロップでファイルを選択</p>
+            <p style="font-size:11px; color:#a0aec0; margin-top:5px;">CSV, JSON ファイル対応</p>
+            <input type="file" id="import-file" accept=".csv,.json">
+        </div>
+        <div style="text-align:center; color:#a0aec0; font-size:12px; margin-bottom:15px;">または</div>
+        <textarea id="import-v" placeholder='テキストを直接貼り付け（CSV形式 または JSON形式）' style="height:120px;"></textarea>
         <div class="modal-btns"><button class="m-btn-c btn-close">中止</button><button class="m-btn-s" id="btn-import-exec">インポート実行</button></div>
     </div>
 
-    <!-- 一括登録モーダル -->
+    <!-- 一括登録モーダル（カンマ区切り形式対応） -->
     <div id="bulk-modal" class="modal">
         <h3>一括登録</h3>
-        <p style="font-size:12px; color:var(--gray); margin-bottom:15px;">1行に1タスクずつ入力してください。</p>
-        <textarea id="bulk-v" placeholder="タスク名1&#10;タスク名2&#10;タスク名3" style="height:150px;"></textarea>
+        <div class="format-help">
+            <strong>入力形式:</strong> <code>タイトル,メモ,優先度(高/中/低),カテゴリー,日付(MMDD)</code><br>
+            <strong>例:</strong><br>
+            <code>会議の準備,資料作成,高,仕事,0520</code><br>
+            <code>買い物,,低,プライベート,</code><br>
+            ※ 省略可能な項目は空欄でOK（カンマは必要）
+        </div>
+        <textarea id="bulk-v" placeholder="タイトル,メモ,優先度,カテゴリー,日付&#10;会議の準備,資料作成,高,仕事,0520&#10;買い物,,低,プライベート," style="height:150px;"></textarea>
         <div class="modal-btns"><button class="m-btn-c btn-close">中止</button><button class="m-btn-s" id="btn-bulk-add-exec">一括登録実行</button></div>
     </div>
 
@@ -233,7 +280,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, updateEmail, updatePassword, updateProfile, GoogleAuthProvider, linkWithPopup, unlink, reauthenticateWithPopup } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut, updateEmail, updatePassword, updateProfile, GoogleAuthProvider, linkWithPopup, unlink } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, deleteDoc, getDoc, writeBatch, setDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyBV5WcWYSBUybd-Jv6iUnC80QNFAjMc5VU", authDomain: "taskfollow-b70ff.firebaseapp.com", projectId: "taskfollow-b70ff" };
@@ -251,6 +298,7 @@
         // --- ユーティリティ ---
         const closeAll = () => { 
             document.querySelectorAll('.modal, .overlay').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.task-menu').forEach(el => el.classList.remove('show'));
             document.getElementById('edit-task-id').value = '';
             document.getElementById('modal-title').textContent = '新規タスク作成';
         };
@@ -277,7 +325,6 @@
                 document.getElementById('user-display').textContent = data.displayName || u.displayName || "ユーザー";
                 if (data.categories && data.categories.length > 0) cats = data.categories;
                 
-                // Google連携状態の表示
                 const isGoogleLinked = u.providerData.some(p => p.providerId === 'google.com');
                 document.getElementById('google-link-text').textContent = isGoogleLinked ? 'Google連携を解除' : 'Googleアカウント連携';
                 
@@ -318,7 +365,6 @@
                 return matchSearch && matchStatus && matchPriority && matchCategory;
             });
 
-            // ソート
             const priorityOrder = {"高":3,"中":2,"低":1};
             filtered.sort((a, b) => {
                 if (sort === "pri") {
@@ -334,23 +380,19 @@
                 }
             });
 
-            updateStats(filtered);
+            updateStats();
             if (currentView === 'list') renderListView(filtered);
             else renderCalView(filtered);
         };
 
-        function updateStats(f) {
-            const all = tasks.length;
-            const un = tasks.filter(t => t.status === "未着手").length;
-            const ing = tasks.filter(t => t.status === "進行中").length;
-            const fin = tasks.filter(t => t.status === "完了").length;
-            document.getElementById('s-all').textContent = all;
-            document.getElementById('s-un').textContent = un;
-            document.getElementById('s-ing').textContent = ing;
-            document.getElementById('s-fin').textContent = fin;
+        function updateStats() {
+            document.getElementById('s-all').textContent = tasks.length;
+            document.getElementById('s-un').textContent = tasks.filter(t => t.status === "未着手").length;
+            document.getElementById('s-ing').textContent = tasks.filter(t => t.status === "進行中").length;
+            document.getElementById('s-fin').textContent = tasks.filter(t => t.status === "完了").length;
         }
 
-        // --- リスト表示 ---
+        // --- リスト表示（メニューボタン付き） ---
         function renderListView(f) {
             const target = document.getElementById('list-target');
             if (!f.length) { 
@@ -359,9 +401,13 @@
             }
             target.innerHTML = f.map(t => `
                 <div class="task-card" data-id="${escapeHtml(t.id)}">
-                    <div class="task-actions">
-                        <button class="edit-btn" title="編集"><i class="fa-solid fa-pen"></i></button>
-                        <button class="delete-btn" title="削除"><i class="fa-solid fa-trash"></i></button>
+                    <div class="task-menu-wrap">
+                        <button class="task-menu-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                        <div class="task-menu">
+                            <button class="edit-action"><i class="fa-solid fa-pen"></i> 編集</button>
+                            <button class="copy-action"><i class="fa-solid fa-copy"></i> 複製</button>
+                            <button class="delete-action"><i class="fa-solid fa-trash"></i> 削除</button>
+                        </div>
                     </div>
                     <div class="task-title"><input type="checkbox" class="t-chk" value="${escapeHtml(t.id)}"> ${escapeHtml(t.title)}</div>
                     <div class="task-meta">
@@ -377,7 +423,7 @@
                     </div>
                 </div>`).join('');
             
-            // イベント委譲
+            // ステータス変更
             target.querySelectorAll('.st-btn').forEach(btn => {
                 btn.onclick = async () => {
                     try {
@@ -387,33 +433,73 @@
                     }
                 };
             });
+            
+            // チェックボックス
             target.querySelectorAll('.t-chk').forEach(chk => {
                 chk.onchange = upBulkUI;
             });
-            target.querySelectorAll('.edit-btn').forEach(btn => {
+            
+            // メニューボタン
+            target.querySelectorAll('.task-menu-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.task-menu').forEach(m => m.classList.remove('show'));
+                    btn.nextElementSibling.classList.toggle('show');
+                };
+            });
+            
+            // 編集アクション
+            target.querySelectorAll('.edit-action').forEach(btn => {
                 btn.onclick = () => {
                     const card = btn.closest('.task-card');
-                    const taskId = card.dataset.id;
-                    const task = tasks.find(t => t.id === taskId);
+                    const task = tasks.find(t => t.id === card.dataset.id);
                     if (task) openEditModal(task);
                 };
             });
-            target.querySelectorAll('.delete-btn').forEach(btn => {
+            
+            // 複製アクション
+            target.querySelectorAll('.copy-action').forEach(btn => {
                 btn.onclick = async () => {
                     const card = btn.closest('.task-card');
-                    const taskId = card.dataset.id;
+                    const task = tasks.find(t => t.id === card.dataset.id);
+                    if (task) {
+                        try {
+                            await addDoc(collection(db, "tasks"), {
+                                uid: task.uid,
+                                title: task.title + " (コピー)",
+                                priority: task.priority,
+                                category: task.category,
+                                date: task.date,
+                                status: task.status,
+                                memo: task.memo || "",
+                                createdAt: new Date()
+                            });
+                            alert('タスクを複製しました');
+                        } catch (e) {
+                            alert('複製に失敗しました');
+                        }
+                    }
+                    closeAll();
+                };
+            });
+            
+            // 削除アクション
+            target.querySelectorAll('.delete-action').forEach(btn => {
+                btn.onclick = async () => {
+                    const card = btn.closest('.task-card');
                     if (confirm('このタスクを削除しますか？')) {
                         try {
-                            await deleteDoc(doc(db, "tasks", taskId));
+                            await deleteDoc(doc(db, "tasks", card.dataset.id));
                         } catch (e) {
                             alert('削除に失敗しました');
                         }
                     }
+                    closeAll();
                 };
             });
         }
 
-        // --- タスク編集モーダルを開く ---
+        // --- タスク編集モーダル ---
         function openEditModal(task) {
             document.getElementById('modal-title').textContent = 'タスクを編集';
             document.getElementById('edit-task-id').value = task.id;
@@ -439,29 +525,25 @@
         function renderCalView(f) {
             const target = document.getElementById('cal-target');
             const year = calDate.getFullYear(), month = calDate.getMonth();
-            let html = `<div style="grid-column: span 7; display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border-bottom: 1px solid #edf2f7;">
-                <button id="cal-prev" style="border:none; background:none; cursor:pointer; font-size:18px;"><i class="fa-solid fa-chevron-left"></i></button>
-                <h3 style="margin:0; font-size:16px;">${year}年 ${month + 1}月</h3>
-                <button id="cal-next" style="border:none; background:none; cursor:pointer; font-size:18px;"><i class="fa-solid fa-chevron-right"></i></button>
-            </div>`;
-            html += ["日","月","火","水","木","金","土"].map(d => `<div class="cal-header">${d}</div>`).join('');
+            
+            document.getElementById('cal-month-label').textContent = `${year}年 ${month + 1}月`;
+            
+            let html = ["日","月","火","水","木","金","土"].map(d => `<div class="cal-header">${d}</div>`).join('');
             const startDay = new Date(year, month, 1).getDay();
             const endDate = new Date(year, month + 1, 0).getDate();
+            
             for(let i=0; i<startDay; i++) html += `<div class="cal-day"></div>`;
             for(let i=1; i<=endDate; i++) {
                 const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
                 const dayTasks = f.filter(t => t.date === dateStr);
                 const isToday = new Date().toISOString().slice(0,10) === dateStr;
                 html += `<div class="cal-day" style="${isToday ? 'background:#f0efff;' : ''}">
-                    <span class="cal-num" style="font-weight:700; font-size:12px; color:${new Date(year, month, i).getDay()===0?'var(--red)':''}">${i}</span>
+                    <span style="font-weight:700; font-size:12px; color:${new Date(year, month, i).getDay()===0?'var(--red)':''}">${i}</span>
                     <div style="margin-top:5px;">${dayTasks.map(t => `<div class="cal-task" data-id="${escapeHtml(t.id)}" title="${escapeHtml(t.title)}">${escapeHtml(t.title)}</div>`).join('')}</div>
                 </div>`;
             }
             target.innerHTML = html;
-            document.getElementById('cal-prev').onclick = () => { calDate.setMonth(calDate.getMonth() - 1); refreshUI(); };
-            document.getElementById('cal-next').onclick = () => { calDate.setMonth(calDate.getMonth() + 1); refreshUI(); };
             
-            // カレンダー内タスクのクリックで編集
             target.querySelectorAll('.cal-task').forEach(el => {
                 el.onclick = () => {
                     const task = tasks.find(t => t.id === el.dataset.id);
@@ -469,6 +551,10 @@
                 };
             });
         }
+
+        // カレンダーナビゲーション
+        document.getElementById('cal-prev').onclick = () => { calDate.setMonth(calDate.getMonth() - 1); refreshUI(); };
+        document.getElementById('cal-next').onclick = () => { calDate.setMonth(calDate.getMonth() + 1); refreshUI(); };
 
         // --- カテゴリUI同期 ---
         function syncCatUI() {
@@ -505,6 +591,13 @@
         // --- イベントリスナー設定 ---
         document.querySelectorAll('.btn-close').forEach(el => el.onclick = closeAll);
         document.getElementById('overlay').onclick = closeAll;
+        
+        // メニュー外クリックで閉じる
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.task-menu-wrap')) {
+                document.querySelectorAll('.task-menu').forEach(m => m.classList.remove('show'));
+            }
+        });
 
         document.getElementById('btn-open-new').onclick = () => {
             document.getElementById('modal-title').textContent = '新規タスク作成';
@@ -521,6 +614,7 @@
         document.getElementById('btn-open-cat').onclick = () => openM('cat-modal');
         document.getElementById('btn-open-import').onclick = () => {
             document.getElementById('import-v').value = '';
+            document.getElementById('import-file').value = '';
             openM('import-modal');
         };
         document.getElementById('btn-open-bulk').onclick = () => {
@@ -578,10 +672,8 @@
             
             try {
                 if (editId) {
-                    // 編集
                     await updateDoc(doc(db, "tasks", editId), taskData);
                 } else {
-                    // 新規作成
                     taskData.status = "未着手";
                     taskData.createdAt = new Date();
                     await addDoc(collection(db, "tasks"), taskData);
@@ -608,20 +700,119 @@
             }
         };
 
-        // インポート
+        // --- CSV/JSONパース関数 ---
+        function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            const result = [];
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                // CSVパース（カンマ区切り、クォート対応）
+                const parts = [];
+                let current = '';
+                let inQuotes = false;
+                for (let j = 0; j < line.length; j++) {
+                    const char = line[j];
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        parts.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                parts.push(current.trim());
+                
+                if (parts.length >= 1 && parts[0]) {
+                    result.push({
+                        title: parts[0] || "無題",
+                        memo: parts[1] || "",
+                        priority: ["高","中","低"].includes(parts[2]) ? parts[2] : "中",
+                        category: parts[3] || "なし",
+                        date: parts[4] ? formatDateInput(parts[4]) : "期限なし"
+                    });
+                }
+            }
+            return result;
+        }
+
+        function formatDateInput(input) {
+            if (!input) return "期限なし";
+            // MMDD形式
+            if (/^\d{4}$/.test(input)) {
+                const mm = input.slice(0,2);
+                const dd = input.slice(2,4);
+                if (parseInt(mm) >= 1 && parseInt(mm) <= 12 && parseInt(dd) >= 1 && parseInt(dd) <= 31) {
+                    return `${new Date().getFullYear()}-${mm}-${dd}`;
+                }
+            }
+            // YYYY-MM-DD形式
+            if (/^\d{4}-\d{2}-\d{2}$/.test(input)) {
+                return input;
+            }
+            return "期限なし";
+        }
+
+        // ファイルアップロード処理
+        const fileUploadArea = document.getElementById('file-upload-area');
+        const fileInput = document.getElementById('import-file');
+        
+        fileUploadArea.onclick = () => fileInput.click();
+        
+        fileUploadArea.ondragover = (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.add('dragover');
+        };
+        fileUploadArea.ondragleave = () => {
+            fileUploadArea.classList.remove('dragover');
+        };
+        fileUploadArea.ondrop = (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(file);
+        };
+        
+        fileInput.onchange = () => {
+            const file = fileInput.files[0];
+            if (file) handleFile(file);
+        };
+        
+        function handleFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('import-v').value = e.target.result;
+            };
+            reader.readAsText(file);
+        }
+
+        // インポート実行（CSV/JSON対応）
         document.getElementById('btn-import-exec').onclick = async () => {
             const v = document.getElementById('import-v').value.trim();
-            if (!v) return alert('インポートするデータを入力してください');
+            if (!v) return alert('インポートするデータを入力またはファイルを選択してください');
+            
+            let data = [];
             try {
-                const data = JSON.parse(v);
-                if (!Array.isArray(data)) throw new Error('配列形式で入力してください');
+                // JSON判定
+                if (v.startsWith('[') || v.startsWith('{')) {
+                    const parsed = JSON.parse(v);
+                    data = Array.isArray(parsed) ? parsed : [parsed];
+                } else {
+                    // CSV形式としてパース
+                    data = parseCSV(v);
+                }
+                
+                if (!data.length) throw new Error('有効なデータがありません');
+                
                 const batch = writeBatch(db);
                 data.forEach(t => {
                     const newDoc = doc(collection(db, "tasks"));
                     batch.set(newDoc, { 
                         uid: userNow.uid, 
                         title: t.title || "無題", 
-                        priority: t.priority || "中", 
+                        priority: ["高","中","低"].includes(t.priority) ? t.priority : "中", 
                         category: t.category || "なし", 
                         date: t.date || "期限なし", 
                         status: t.status || "未着手", 
@@ -637,29 +828,31 @@
             }
         };
 
-        // 一括登録
+        // 一括登録（カンマ区切り形式対応）
         document.getElementById('btn-bulk-add-exec').onclick = async () => {
             const v = document.getElementById('bulk-v').value.trim();
             if (!v) return alert('タスクを入力してください');
-            const lines = v.split('\n').map(l => l.trim()).filter(l => l);
-            if (!lines.length) return alert('有効なタスクがありません');
+            
+            const data = parseCSV(v);
+            if (!data.length) return alert('有効なタスクがありません');
+            
             try {
                 const batch = writeBatch(db);
-                lines.forEach(line => {
+                data.forEach(t => {
                     const newDoc = doc(collection(db, "tasks"));
                     batch.set(newDoc, { 
                         uid: userNow.uid, 
-                        title: line, 
-                        priority: "中", 
-                        category: "なし", 
-                        date: "期限なし", 
+                        title: t.title, 
+                        priority: t.priority, 
+                        category: t.category, 
+                        date: t.date, 
                         status: "未着手", 
-                        memo: "",
+                        memo: t.memo,
                         createdAt: new Date() 
                     });
                 });
                 await batch.commit();
-                alert(`${lines.length}件のタスクを登録しました`); 
+                alert(`${data.length}件のタスクを登録しました`); 
                 closeAll();
             } catch (e) { 
                 alert("登録に失敗しました: " + e.message); 
@@ -673,22 +866,26 @@
             chks.forEach(c => c.checked = !allChecked);
             upBulkUI();
         };
-        document.getElementById('bulk-st').onchange = async () => {
-            const st = document.getElementById('bulk-st').value;
-            if (!st) return;
+        
+        // 優先度一括変更
+        document.getElementById('bulk-pri').onchange = async () => {
+            const pri = document.getElementById('bulk-pri').value;
+            if (!pri) return;
             const ids = Array.from(document.querySelectorAll('.t-chk:checked')).map(c => c.value);
             if (!ids.length) return;
             try {
                 const batch = writeBatch(db);
-                ids.forEach(id => batch.update(doc(db, "tasks", id), { status: st }));
+                ids.forEach(id => batch.update(doc(db, "tasks", id), { priority: pri }));
                 await batch.commit();
                 document.querySelectorAll('.t-chk:checked').forEach(c => c.checked = false);
-                document.getElementById('bulk-st').value = ""; 
+                document.getElementById('bulk-pri').value = ""; 
                 upBulkUI();
+                alert(`${ids.length}件のタスクの優先度を「${pri}」に変更しました`);
             } catch (e) {
-                alert('ステータス変更に失敗しました');
+                alert('優先度変更に失敗しました');
             }
         };
+        
         document.getElementById('btn-bulk-delete').onclick = async () => {
             const ids = Array.from(document.querySelectorAll('.t-chk:checked')).map(c => c.value);
             if (!ids.length) return;
@@ -702,6 +899,7 @@
                 alert('削除に失敗しました');
             }
         };
+        
         document.getElementById('btn-bulk-copy').onclick = async () => {
             const ids = Array.from(document.querySelectorAll('.t-chk:checked')).map(c => c.value);
             if (!ids.length) return;
@@ -786,7 +984,6 @@
             const isLinked = auth.currentUser.providerData.some(p => p.providerId === 'google.com');
             
             if (isLinked) {
-                // 連携解除
                 if (auth.currentUser.providerData.length <= 1) {
                     return alert('他のログイン方法がないため、Google連携を解除できません。');
                 }
@@ -799,7 +996,6 @@
                     catch (e) { alert("解除に失敗しました: " + e.message); }
                 }
             } else {
-                // 連携
                 try { 
                     await linkWithPopup(auth.currentUser, provider); 
                     alert("Googleアカウントと連携しました"); 
