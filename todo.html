@@ -126,73 +126,63 @@
             .stats { grid-template-columns: repeat(2, 1fr); padding: 15px 20px; }
             .ctrls { padding: 0 20px 20px; }
             .task-card { margin: 0 20px 15px; padding: 20px; }
-            .bulk-bar { margin: 0 20px 15px; }
             #cal-view-area { padding: 0 20px; }
-            .modal { width: calc(100% - 40px); padding: 30px 20px; }
+            .modal { width: 90%; padding: 25px; }
         }
     </style>
 </head>
 <body>
-    <!-- ローディング表示 -->
-    <div id="loading-overlay" class="loading-overlay">
-        <div class="spinner"></div>
-        <div style="color: var(--gray); font-weight: 600;">読み込み中...</div>
-    </div>
+    <div id="loading-overlay" class="loading-overlay"><div class="spinner"></div><p style="font-weight:800; color:var(--p);">読み込み中...</p></div>
 
-    <!-- ヘッダーエリア -->
     <header>
         <div class="logo-box">
-            <h2>タスク管理</h2>
-            <p>あなたのタスクを整理して、効率的に管理しましょう</p>
-            <div class="u-area">
-                <div class="u-name"><span id="user-display">---</span> さん <i class="fa-solid fa-chevron-down" style="font-size:10px;"></i></div>
-                <div class="dropdown">
-                    <button id="btn-edit-email"><i class="fa-solid fa-envelope"></i> メールアドレス変更</button>
-                    <button id="btn-edit-phone"><i class="fa-solid fa-phone"></i> 電話番号変更</button>
-                    <button id="btn-edit-password"><i class="fa-solid fa-key"></i> パスワード変更</button>
-                    <button id="btn-edit-name" style="color:var(--p);"><i class="fa-solid fa-user-pen"></i> ユーザー名の変更</button>
-                    <button id="btn-link-google" class="special-btn" style="color:#4285f4;"><i class="fa-brands fa-google"></i> <span id="google-link-text">Googleアカウント連携</span></button>
-                    <button id="btn-logout" class="logout"><i class="fa-solid fa-right-from-bracket"></i> ログアウト</button>
-                </div>
+            <h2>TaskFollow</h2>
+            <p>効率的なタスク管理をサポート</p>
+            <div class="h-btns">
+                <button class="h-btn h-btn-main" id="btn-open-new"><i class="fa-solid fa-plus"></i> 新規タスク</button>
+                <button class="h-btn" id="btn-open-bulk"><i class="fa-solid fa-layer-group"></i> 一括登録</button>
+                <button class="h-btn" id="btn-open-import"><i class="fa-solid fa-file-import"></i> インポート</button>
+                <button class="h-btn" id="btn-open-cat"><i class="fa-solid fa-tags"></i> カテゴリ</button>
             </div>
         </div>
-        <div class="h-btns">
-            <button class="h-btn" id="btn-open-cat"><i class="fa-solid fa-gear"></i> 設定</button>
-            <button class="h-btn" id="btn-open-import"><i class="fa-solid fa-file-import"></i> インポート</button>
-            <button class="h-btn" id="btn-open-bulk"><i class="fa-solid fa-list-check"></i> 一括登録</button>
-            <button class="h-btn h-btn-main" id="btn-open-new"><i class="fa-solid fa-plus"></i> 新規タスク</button>
+        <div class="u-area">
+            <div class="u-name"><i class="fa-solid fa-circle-user" style="font-size:24px; color:var(--p);"></i> <span id="user-display">読み込み中...</span> <i class="fa-solid fa-chevron-down" style="font-size:10px;"></i></div>
+            <div class="dropdown">
+                <button onclick="openEditP('displayName', 'ユーザー名')"><i class="fa-solid fa-user-pen"></i> ユーザー名変更</button>
+                <button onclick="openEditP('email', 'メールアドレス')"><i class="fa-solid fa-envelope"></i> メールアドレス変更</button>
+                <button onclick="openEditP('password', 'パスワード')"><i class="fa-solid fa-key"></i> パスワード変更</button>
+                <button id="google-link-btn" class="special-btn"><i class="fa-brands fa-google"></i> <span id="google-link-text">Google連携</span></button>
+                <button class="logout" id="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> ログアウト</button>
+            </div>
         </div>
     </header>
 
-    <!-- 統計 -->
     <div class="stats">
-        <div class="stat-card"><div class="stat-icon" style="background:#f0efff; color:var(--p);"><i class="fa-solid fa-list-ul"></i></div><div><b id="s-all">0</b><br><small>合計</small></div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#fff7ed; color:#f97316;"><i class="fa-solid fa-circle-exclamation"></i></div><div><b id="s-un">0</b><br><small>未着手</small></div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#f0f9ff; color:#0ea5e9;"><i class="fa-solid fa-spinner"></i></div><div><b id="s-ing">0</b><br><small>進行中</small></div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#f0fdf4; color:#22c55e;"><i class="fa-solid fa-circle-check"></i></div><div><b id="s-fin">0</b><br><small>完了</small></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#f0efff; color:var(--p);"><i class="fa-solid fa-list-check"></i></div><div><div style="font-size:12px; color:var(--gray); font-weight:700;">全タスク</div><div id="s-all" style="font-size:20px; font-weight:800;">0</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#fff5f5; color:var(--red);"><i class="fa-solid fa-circle-play"></i></div><div><div style="font-size:12px; color:var(--gray); font-weight:700;">未着手</div><div id="s-un" style="font-size:20px; font-weight:800;">0</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#fff9eb; color:#f59e0b;"><i class="fa-solid fa-spinner"></i></div><div><div style="font-size:12px; color:var(--gray); font-weight:700;">進行中</div><div id="s-ing" style="font-size:20px; font-weight:800;">0</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#f0fdf4; color:var(--success);"><i class="fa-solid fa-circle-check"></i></div><div><div style="font-size:12px; color:var(--gray); font-weight:700;">完了</div><div id="s-fin" style="font-size:20px; font-weight:800;">0</div></div></div>
     </div>
 
-    <!-- 一括操作バー -->
-    <div class="bulk-bar" id="bulk-ui">
-        <div><button id="btn-select-all" style="background:none; border:none; color:white; font-weight:800; cursor:pointer;">すべて選択</button> <span id="bulk-info" style="margin-left:15px;">0 件選択中</span></div>
+    <div id="bulk-ui" class="bulk-bar">
+        <div id="bulk-info" style="font-weight:800; font-size:14px;">0 件選択中</div>
         <div class="bulk-btns">
-            <select id="bulk-pri"><option value="">優先度変更</option><option value="高">高</option><option value="中">中</option><option value="低">低</option></select>
-            <button id="btn-bulk-copy">一括複製</button>
-            <button id="btn-bulk-delete" style="background:var(--red);">一括削除</button>
+            <select id="bulk-pri-sel"><option value="">優先度を変更</option><option value="高">高</option><option value="中">中</option><option value="低">低</option></select>
+            <button id="bulk-copy-btn"><i class="fa-solid fa-copy"></i> 複製</button>
+            <button id="bulk-del-btn" style="background:rgba(255,77,77,0.3); border-color:rgba(255,77,77,0.4);"><i class="fa-solid fa-trash"></i> 削除</button>
         </div>
     </div>
 
-    <!-- 検索・フィルタ・表示切替 -->
     <div class="ctrls">
-        <div class="search-wrap"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="q-search" placeholder="タスクを検索..."></div>
+        <div class="search-wrap"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="q-search" placeholder="タスク名で検索..." oninput="refreshUI()"></div>
         <div class="filter-row">
-            <select id="f-st"><option value="">全ステータス</option><option value="未着手">未着手</option><option value="進行中">進行中</option><option value="完了">完了</option></select>
-            <select id="f-pri"><option value="">全優先度</option><option value="高">高</option><option value="中">中</option><option value="低">低</option></select>
-            <select id="f-cat"><option value="">全カテゴリ</option></select>
-            <select id="f-sort"><option value="pri">優先度順</option><option value="date">期限順</option><option value="created">作成順</option></select>
+            <select id="f-st" onchange="refreshUI()"><option value="">すべての状態</option><option value="未着手">未着手</option><option value="進行中">進行中</option><option value="完了">完了</option></select>
+            <select id="f-pri" onchange="refreshUI()"><option value="">すべての優先度</option><option value="高">高</option><option value="中">中</option><option value="低">低</option></select>
+            <select id="f-cat" onchange="refreshUI()"><option value="">全カテゴリ</option></select>
+            <select id="f-sort" onchange="refreshUI()"><option value="new">作成順</option><option value="pri">優先度順</option><option value="date">期限順</option></select>
             <div class="view-toggle">
-                <button id="btn-list-view" class="active">リスト</button>
-                <button id="btn-cal-view">カレンダー</button>
+                <button id="btn-list-view" class="active"><i class="fa-solid fa-list"></i></button>
+                <button id="btn-cal-view"><i class="fa-solid fa-calendar-days"></i></button>
             </div>
         </div>
     </div>
@@ -337,8 +327,10 @@
         });
 
         // --- データ監視 ---
+        let unsubscribeTasks = null;
         function listenTasks() {
-            onSnapshot(query(collection(db, "tasks"), where("uid", "==", userNow.uid)), snap => {
+            if (unsubscribeTasks) unsubscribeTasks();
+            unsubscribeTasks = onSnapshot(query(collection(db, "tasks"), where("uid", "==", userNow.uid)), snap => {
                 tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 refreshUI();
                 hideLoading();
@@ -370,12 +362,12 @@
                 if (sort === "pri") {
                     return (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0);
                 } else if (sort === "date") {
-                    const dateA = a.date === "期限なし" ? new Date(9999, 11, 31) : new Date(a.date);
-                    const dateB = b.date === "期限なし" ? new Date(9999, 11, 31) : new Date(b.date);
-                    return dateA - dateB;
+                    const dateA = a.date === "期限なし" ? "9999-12-31" : a.date;
+                    const dateB = b.date === "期限なし" ? "9999-12-31" : b.date;
+                    return dateA.localeCompare(dateB);
                 } else {
-                    const createdA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
-                    const createdB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
+                    const createdA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : (a.createdAt || 0);
+                    const createdB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : (b.createdAt || 0);
                     return createdB - createdA;
                 }
             });
@@ -392,24 +384,26 @@
             document.getElementById('s-fin').textContent = tasks.filter(t => t.status === "完了").length;
         }
 
-        // --- リスト表示（メニューボタン付き） ---
+        // --- リスト表示 ---
         function renderListView(f) {
             const target = document.getElementById('list-target');
             if (!f.length) { 
                 target.innerHTML = `<div class="empty-state"><i class="fa-solid fa-inbox" style="font-size:48px; margin-bottom:20px; display:block;"></i>タスクが見つかりません</div>`; 
                 return; 
             }
-            target.innerHTML = f.map(t => `
+            
+            // パフォーマンス改善: 一括でHTMLを生成
+            const html = f.map(t => `
                 <div class="task-card" data-id="${escapeHtml(t.id)}">
                     <div class="task-menu-wrap">
-                        <button class="task-menu-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-                        <div class="task-menu">
-                            <button class="edit-action"><i class="fa-solid fa-pen"></i> 編集</button>
-                            <button class="copy-action"><i class="fa-solid fa-copy"></i> 複製</button>
-                            <button class="delete-action"><i class="fa-solid fa-trash"></i> 削除</button>
+                        <button class="task-menu-btn" onclick="toggleMenu(event, '${escapeHtml(t.id)}')"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                        <div class="task-menu" id="menu-${escapeHtml(t.id)}">
+                            <button onclick="editTask('${escapeHtml(t.id)}')"><i class="fa-solid fa-pen"></i> 編集</button>
+                            <button onclick="copyTask('${escapeHtml(t.id)}')"><i class="fa-solid fa-copy"></i> 複製</button>
+                            <button class="delete-action" onclick="deleteTask('${escapeHtml(t.id)}')"><i class="fa-solid fa-trash"></i> 削除</button>
                         </div>
                     </div>
-                    <div class="task-title"><input type="checkbox" class="t-chk" value="${escapeHtml(t.id)}"> ${escapeHtml(t.title)}</div>
+                    <div class="task-title"><input type="checkbox" class="t-chk" value="${escapeHtml(t.id)}" onchange="upBulkUI()"> ${escapeHtml(t.title)}</div>
                     <div class="task-meta">
                         <span><i class="fa-solid fa-flag" style="color:${t.priority==='高'?'#ff4d4d':(t.priority==='中'?'#f97316':'#3b82f6')}"></i> ${escapeHtml(t.priority)}</span>
                         <span class="tag">${escapeHtml(t.category || 'なし')}</span>
@@ -417,87 +411,53 @@
                         ${t.memo ? `<span><i class="fa-solid fa-note-sticky"></i> メモあり</span>` : ''}
                     </div>
                     <div class="st-group">
-                        <button class="st-btn ${t.status==='未着手'?'active':''}" data-id="${escapeHtml(t.id)}" data-st="未着手">未着手</button>
-                        <button class="st-btn ${t.status==='進行中'?'active':''}" data-id="${escapeHtml(t.id)}" data-st="進行中">進行中</button>
-                        <button class="st-btn ${t.status==='完了'?'active':''}" data-id="${escapeHtml(t.id)}" data-st="完了">完了</button>
+                        <button class="st-btn ${t.status==='未着手'?'active':''}" onclick="updateStatus('${escapeHtml(t.id)}', '未着手')">未着手</button>
+                        <button class="st-btn ${t.status==='進行中'?'active':''}" onclick="updateStatus('${escapeHtml(t.id)}', '進行中')">進行中</button>
+                        <button class="st-btn ${t.status==='完了'?'active':''}" onclick="updateStatus('${escapeHtml(t.id)}', '完了')">完了</button>
                     </div>
-                </div>`).join('');
-            
-            // ステータス変更
-            target.querySelectorAll('.st-btn').forEach(btn => {
-                btn.onclick = async () => {
-                    try {
-                        await updateDoc(doc(db, "tasks", btn.dataset.id), { status: btn.dataset.st });
-                    } catch (e) {
-                        alert('ステータス更新に失敗しました');
-                    }
-                };
-            });
-            
-            // チェックボックス
-            target.querySelectorAll('.t-chk').forEach(chk => {
-                chk.onchange = upBulkUI;
-            });
-            
-            // メニューボタン
-            target.querySelectorAll('.task-menu-btn').forEach(btn => {
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    document.querySelectorAll('.task-menu').forEach(m => m.classList.remove('show'));
-                    btn.nextElementSibling.classList.toggle('show');
-                };
-            });
-            
-            // 編集アクション
-            target.querySelectorAll('.edit-action').forEach(btn => {
-                btn.onclick = () => {
-                    const card = btn.closest('.task-card');
-                    const task = tasks.find(t => t.id === card.dataset.id);
-                    if (task) openEditModal(task);
-                };
-            });
-            
-            // 複製アクション
-            target.querySelectorAll('.copy-action').forEach(btn => {
-                btn.onclick = async () => {
-                    const card = btn.closest('.task-card');
-                    const task = tasks.find(t => t.id === card.dataset.id);
-                    if (task) {
-                        try {
-                            await addDoc(collection(db, "tasks"), {
-                                uid: task.uid,
-                                title: task.title + " (コピー)",
-                                priority: task.priority,
-                                category: task.category,
-                                date: task.date,
-                                status: task.status,
-                                memo: task.memo || "",
-                                createdAt: new Date()
-                            });
-                            alert('タスクを複製しました');
-                        } catch (e) {
-                            alert('複製に失敗しました');
-                        }
-                    }
-                    closeAll();
-                };
-            });
-            
-            // 削除アクション
-            target.querySelectorAll('.delete-action').forEach(btn => {
-                btn.onclick = async () => {
-                    const card = btn.closest('.task-card');
-                    if (confirm('このタスクを削除しますか？')) {
-                        try {
-                            await deleteDoc(doc(db, "tasks", card.dataset.id));
-                        } catch (e) {
-                            alert('削除に失敗しました');
-                        }
-                    }
-                    closeAll();
-                };
-            });
+                </div>
+            `).join('');
+            target.innerHTML = html;
         }
+
+        // グローバル関数として公開
+        window.toggleMenu = (e, id) => {
+            e.stopPropagation();
+            const menu = document.getElementById(`menu-${id}`);
+            const isShow = menu.classList.contains('show');
+            document.querySelectorAll('.task-menu').forEach(m => m.classList.remove('show'));
+            if (!isShow) menu.classList.add('show');
+        };
+
+        window.updateStatus = async (id, st) => {
+            try {
+                await updateDoc(doc(db, "tasks", id), { status: st, updatedAt: new Date() });
+            } catch (e) { alert("更新に失敗しました"); }
+        };
+
+        window.deleteTask = async (id) => {
+            if (!confirm("このタスクを削除しますか？")) return;
+            try {
+                await deleteDoc(doc(db, "tasks", id));
+            } catch (e) { alert("削除に失敗しました"); }
+        };
+
+        window.copyTask = async (id) => {
+            const t = tasks.find(x => x.id === id);
+            if (!t) return;
+            const { id: _, ...data } = t;
+            data.title += " (コピー)";
+            data.createdAt = new Date();
+            data.updatedAt = new Date();
+            try {
+                await addDoc(collection(db, "tasks"), data);
+            } catch (e) { alert("複製に失敗しました"); }
+        };
+
+        window.editTask = (id) => {
+            const t = tasks.find(x => x.id === id);
+            if (t) openEditModal(t);
+        };
 
         // --- タスク編集モーダル ---
         function openEditModal(task) {
@@ -539,17 +499,10 @@
                 const isToday = new Date().toISOString().slice(0,10) === dateStr;
                 html += `<div class="cal-day" style="${isToday ? 'background:#f0efff;' : ''}">
                     <span style="font-weight:700; font-size:12px; color:${new Date(year, month, i).getDay()===0?'var(--red)':''}">${i}</span>
-                    <div style="margin-top:5px;">${dayTasks.map(t => `<div class="cal-task" data-id="${escapeHtml(t.id)}" title="${escapeHtml(t.title)}">${escapeHtml(t.title)}</div>`).join('')}</div>
+                    <div style="margin-top:5px;">${dayTasks.map(t => `<div class="cal-task" onclick="editTask('${escapeHtml(t.id)}')" title="${escapeHtml(t.title)}">${escapeHtml(t.title)}</div>`).join('')}</div>
                 </div>`;
             }
             target.innerHTML = html;
-            
-            target.querySelectorAll('.cal-task').forEach(el => {
-                el.onclick = () => {
-                    const task = tasks.find(t => t.id === el.dataset.id);
-                    if (task) openEditModal(task);
-                };
-            });
         }
 
         // カレンダーナビゲーション
@@ -559,44 +512,39 @@
         // --- カテゴリUI同期 ---
         function syncCatUI() {
             const catBox = document.getElementById('cat-box');
-            catBox.innerHTML = cats.map(c => `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid #f7fafc;"><span>${escapeHtml(c)}</span> ${c!=='なし' ? `<i class="fa-solid fa-trash del-cat-btn" data-cat="${escapeHtml(c)}" style="cursor:pointer; color:#ccc;"></i>` : ''}</div>`).join('');
-            catBox.querySelectorAll('.del-cat-btn').forEach(btn => {
-                btn.onclick = async () => {
-                    if (!confirm(`カテゴリ「${btn.dataset.cat}」を削除しますか？`)) return;
-                    cats = cats.filter(c => c !== btn.dataset.cat);
-                    try {
-                        await updateDoc(doc(db, "users", userNow.uid), { categories: cats });
-                        syncCatUI();
-                    } catch (e) {
-                        alert('カテゴリ削除に失敗しました');
-                    }
-                };
-            });
+            catBox.innerHTML = cats.map(c => `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid #f7fafc;"><span>${escapeHtml(c)}</span> ${c!=='なし' ? `<i class="fa-solid fa-trash" onclick="deleteCat('${escapeHtml(c)}')" style="cursor:pointer; color:#ccc;"></i>` : ''}</div>`).join('');
+            
             [document.getElementById('t-cat-sel'), document.getElementById('f-cat')].forEach(s => {
                 if (s) {
                     const currentValue = s.value;
                     s.innerHTML = (s.id === 'f-cat' ? '<option value="">全カテゴリ</option>' : '') + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
-                    if (currentValue) s.value = currentValue;
+                    if (currentValue && cats.includes(currentValue)) s.value = currentValue;
                 }
             });
         }
 
+        window.deleteCat = async (cat) => {
+            if (!confirm(`カテゴリ「${cat}」を削除しますか？`)) return;
+            cats = cats.filter(c => c !== cat);
+            try {
+                await updateDoc(doc(db, "users", userNow.uid), { categories: cats });
+                syncCatUI();
+            } catch (e) { alert('カテゴリ削除に失敗しました'); }
+        };
+
         // --- 一括操作UI ---
-        function upBulkUI() {
+        window.upBulkUI = () => {
             const n = document.querySelectorAll('.t-chk:checked').length;
             document.getElementById('bulk-ui').style.display = n ? 'flex' : 'none';
             document.getElementById('bulk-info').textContent = `${n} 件選択中`;
-        }
+        };
 
         // --- イベントリスナー設定 ---
         document.querySelectorAll('.btn-close').forEach(el => el.onclick = closeAll);
         document.getElementById('overlay').onclick = closeAll;
         
-        // メニュー外クリックで閉じる
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.task-menu-wrap')) {
-                document.querySelectorAll('.task-menu').forEach(m => m.classList.remove('show'));
-            }
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.task-menu').forEach(m => m.classList.remove('show'));
         });
 
         document.getElementById('btn-open-new').onclick = () => {
@@ -650,9 +598,7 @@
                 if (mmdd && /^\d{4}$/.test(mmdd)) {
                     const mm = mmdd.slice(0,2);
                     const dd = mmdd.slice(2,4);
-                    if (parseInt(mm) >= 1 && parseInt(mm) <= 12 && parseInt(dd) >= 1 && parseInt(dd) <= 31) {
-                        d = `${new Date().getFullYear()}-${mm}-${dd}`;
-                    }
+                    d = `${new Date().getFullYear()}-${mm}-${dd}`;
                 } else if (document.getElementById('t-picker').value) {
                     d = document.getElementById('t-picker').value;
                 }
@@ -679,9 +625,7 @@
                     await addDoc(collection(db, "tasks"), taskData);
                 }
                 closeAll();
-            } catch (e) { 
-                alert("保存に失敗しました: " + e.message); 
-            }
+            } catch (e) { alert("保存に失敗しました: " + e.message); }
         };
 
         // カテゴリ追加
@@ -700,338 +644,162 @@
             }
         };
 
-        // --- CSV/JSONパース関数 ---
-        function parseCSV(text) {
-            const lines = text.trim().split('\n');
-            const result = [];
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
-                
-                // CSVパース（カンマ区切り、クォート対応）
-                const parts = [];
-                let current = '';
-                let inQuotes = false;
-                for (let j = 0; j < line.length; j++) {
-                    const char = line[j];
-                    if (char === '"') {
-                        inQuotes = !inQuotes;
-                    } else if (char === ',' && !inQuotes) {
-                        parts.push(current.trim());
-                        current = '';
-                    } else {
-                        current += char;
-                    }
-                }
-                parts.push(current.trim());
-                
-                if (parts.length >= 1 && parts[0]) {
-                    result.push({
-                        title: parts[0] || "無題",
-                        memo: parts[1] || "",
-                        priority: ["高","中","低"].includes(parts[2]) ? parts[2] : "中",
-                        category: parts[3] || "なし",
-                        date: parts[4] ? formatDateInput(parts[4]) : "期限なし"
-                    });
-                }
-            }
-            return result;
-        }
+        // --- インポート・一括登録 ---
+        const processImport = async (dataList) => {
+            if (!dataList.length) return alert('有効なデータが見つかりませんでした');
+            const batch = writeBatch(db);
+            dataList.forEach(d => {
+                const newDoc = doc(collection(db, "tasks"));
+                batch.set(newDoc, {
+                    uid: userNow.uid,
+                    title: d.title || '無題のタスク',
+                    memo: d.memo || '',
+                    priority: ["高","中","低"].includes(d.priority) ? d.priority : "中",
+                    category: d.category || "なし",
+                    date: d.date || "期限なし",
+                    status: "未着手",
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                });
+            });
+            try {
+                await batch.commit();
+                alert(`${dataList.length} 件のタスクをインポートしました`);
+                closeAll();
+            } catch (e) { alert('インポートに失敗しました'); }
+        };
 
-        function formatDateInput(input) {
-            if (!input) return "期限なし";
-            // MMDD形式
-            if (/^\d{4}$/.test(input)) {
-                const mm = input.slice(0,2);
-                const dd = input.slice(2,4);
-                if (parseInt(mm) >= 1 && parseInt(mm) <= 12 && parseInt(dd) >= 1 && parseInt(dd) <= 31) {
-                    return `${new Date().getFullYear()}-${mm}-${dd}`;
+        document.getElementById('btn-bulk-add-exec').onclick = () => {
+            const text = document.getElementById('bulk-v').value.trim();
+            if (!text) return alert('データを入力してください');
+            const lines = text.split('\n');
+            const dataList = lines.map(line => {
+                const [title, memo, priority, category, mmdd] = line.split(',').map(s => s?.trim());
+                if (!title) return null;
+                let date = "期限なし";
+                if (mmdd && /^\d{4}$/.test(mmdd)) {
+                    date = `${new Date().getFullYear()}-${mmdd.slice(0,2)}-${mmdd.slice(2,4)}`;
                 }
-            }
-            // YYYY-MM-DD形式
-            if (/^\d{4}-\d{2}-\d{2}$/.test(input)) {
-                return input;
-            }
-            return "期限なし";
-        }
+                return { title, memo, priority, category, date };
+            }).filter(x => x);
+            processImport(dataList);
+        };
 
-        // ファイルアップロード処理
-        const fileUploadArea = document.getElementById('file-upload-area');
+        document.getElementById('btn-import-exec').onclick = () => {
+            const text = document.getElementById('import-v').value.trim();
+            if (!text) return alert('データを入力してください');
+            try {
+                if (text.startsWith('[')) {
+                    processImport(JSON.parse(text));
+                } else {
+                    const lines = text.split('\n');
+                    const dataList = lines.map(line => {
+                        const [title, memo, priority, category, date] = line.split(',').map(s => s?.trim());
+                        return title ? { title, memo, priority, category, date } : null;
+                    }).filter(x => x);
+                    processImport(dataList);
+                }
+            } catch (e) { alert('パースに失敗しました。形式を確認してください。'); }
+        };
+
+        // ファイルアップロード
+        const area = document.getElementById('file-upload-area');
         const fileInput = document.getElementById('import-file');
-        
-        fileUploadArea.onclick = () => fileInput.click();
-        
-        fileUploadArea.ondragover = (e) => {
+        area.onclick = () => fileInput.click();
+        area.ondragover = (e) => { e.preventDefault(); area.classList.add('dragover'); };
+        area.ondragleave = () => area.classList.remove('dragover');
+        area.ondrop = (e) => {
             e.preventDefault();
-            fileUploadArea.classList.add('dragover');
+            area.classList.remove('dragover');
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
         };
-        fileUploadArea.ondragleave = () => {
-            fileUploadArea.classList.remove('dragover');
-        };
-        fileUploadArea.ondrop = (e) => {
-            e.preventDefault();
-            fileUploadArea.classList.remove('dragover');
-            const file = e.dataTransfer.files[0];
-            if (file) handleFile(file);
-        };
-        
-        fileInput.onchange = () => {
-            const file = fileInput.files[0];
-            if (file) handleFile(file);
-        };
-        
+        fileInput.onchange = (e) => { if (e.target.files.length) handleFile(e.target.files[0]); };
+
         function handleFile(file) {
             const reader = new FileReader();
-            reader.onload = (e) => {
-                document.getElementById('import-v').value = e.target.result;
-            };
+            reader.onload = (e) => { document.getElementById('import-v').value = e.target.result; };
             reader.readAsText(file);
         }
 
-        // インポート実行（CSV/JSON対応）
-        document.getElementById('btn-import-exec').onclick = async () => {
-            const v = document.getElementById('import-v').value.trim();
-            if (!v) return alert('インポートするデータを入力またはファイルを選択してください');
-            
-            let data = [];
-            try {
-                // JSON判定
-                if (v.startsWith('[') || v.startsWith('{')) {
-                    const parsed = JSON.parse(v);
-                    data = Array.isArray(parsed) ? parsed : [parsed];
-                } else {
-                    // CSV形式としてパース
-                    data = parseCSV(v);
+        // --- 一括操作実行 ---
+        document.getElementById('bulk-del-btn').onclick = async () => {
+            const ids = Array.from(document.querySelectorAll('.t-chk:checked')).map(el => el.value);
+            if (!ids.length || !confirm(`${ids.length} 件のタスクを削除しますか？`)) return;
+            const batch = writeBatch(db);
+            ids.forEach(id => batch.delete(doc(db, "tasks", id)));
+            try { await batch.commit(); upBulkUI(); } catch (e) { alert('削除に失敗しました'); }
+        };
+
+        document.getElementById('bulk-copy-btn').onclick = async () => {
+            const ids = Array.from(document.querySelectorAll('.t-chk:checked')).map(el => el.value);
+            if (!ids.length) return;
+            const batch = writeBatch(db);
+            ids.forEach(id => {
+                const t = tasks.find(x => x.id === id);
+                if (t) {
+                    const { id: _, ...data } = t;
+                    data.title += " (コピー)";
+                    data.createdAt = new Date();
+                    batch.set(doc(collection(db, "tasks")), data);
                 }
-                
-                if (!data.length) throw new Error('有効なデータがありません');
-                
-                const batch = writeBatch(db);
-                data.forEach(t => {
-                    const newDoc = doc(collection(db, "tasks"));
-                    batch.set(newDoc, { 
-                        uid: userNow.uid, 
-                        title: t.title || "無題", 
-                        priority: ["高","中","低"].includes(t.priority) ? t.priority : "中", 
-                        category: t.category || "なし", 
-                        date: t.date || "期限なし", 
-                        status: t.status || "未着手", 
-                        memo: t.memo || "",
-                        createdAt: new Date() 
-                    });
-                });
-                await batch.commit();
-                alert(`${data.length}件のタスクをインポートしました`); 
-                closeAll();
-            } catch (e) { 
-                alert("インポートに失敗しました: " + e.message); 
-            }
+            });
+            try { await batch.commit(); upBulkUI(); } catch (e) { alert('複製に失敗しました'); }
         };
 
-        // 一括登録（カンマ区切り形式対応）
-        document.getElementById('btn-bulk-add-exec').onclick = async () => {
-            const v = document.getElementById('bulk-v').value.trim();
-            if (!v) return alert('タスクを入力してください');
-            
-            const data = parseCSV(v);
-            if (!data.length) return alert('有効なタスクがありません');
-            
-            try {
-                const batch = writeBatch(db);
-                data.forEach(t => {
-                    const newDoc = doc(collection(db, "tasks"));
-                    batch.set(newDoc, { 
-                        uid: userNow.uid, 
-                        title: t.title, 
-                        priority: t.priority, 
-                        category: t.category, 
-                        date: t.date, 
-                        status: "未着手", 
-                        memo: t.memo,
-                        createdAt: new Date() 
-                    });
-                });
-                await batch.commit();
-                alert(`${data.length}件のタスクを登録しました`); 
-                closeAll();
-            } catch (e) { 
-                alert("登録に失敗しました: " + e.message); 
-            }
-        };
-
-        // 一括操作
-        document.getElementById('btn-select-all').onclick = () => {
-            const chks = document.querySelectorAll('.t-chk');
-            const allChecked = Array.from(chks).every(c => c.checked);
-            chks.forEach(c => c.checked = !allChecked);
-            upBulkUI();
-        };
-        
-        // 優先度一括変更
-        document.getElementById('bulk-pri').onchange = async () => {
-            const pri = document.getElementById('bulk-pri').value;
+        document.getElementById('bulk-pri-sel').onchange = async (e) => {
+            const pri = e.target.value;
             if (!pri) return;
-            const ids = Array.from(document.querySelectorAll('.t-chk:checked')).map(c => c.value);
-            if (!ids.length) return;
-            try {
-                const batch = writeBatch(db);
-                ids.forEach(id => batch.update(doc(db, "tasks", id), { priority: pri }));
-                await batch.commit();
-                document.querySelectorAll('.t-chk:checked').forEach(c => c.checked = false);
-                document.getElementById('bulk-pri').value = ""; 
-                upBulkUI();
-                alert(`${ids.length}件のタスクの優先度を「${pri}」に変更しました`);
-            } catch (e) {
-                alert('優先度変更に失敗しました');
-            }
-        };
-        
-        document.getElementById('btn-bulk-delete').onclick = async () => {
-            const ids = Array.from(document.querySelectorAll('.t-chk:checked')).map(c => c.value);
-            if (!ids.length) return;
-            if (!confirm(`${ids.length}件のタスクを削除しますか？`)) return;
-            try {
-                const batch = writeBatch(db);
-                ids.forEach(id => batch.delete(doc(db, "tasks", id)));
-                await batch.commit();
-                upBulkUI();
-            } catch (e) {
-                alert('削除に失敗しました');
-            }
-        };
-        
-        document.getElementById('btn-bulk-copy').onclick = async () => {
-            const ids = Array.from(document.querySelectorAll('.t-chk:checked')).map(c => c.value);
-            if (!ids.length) return;
-            try {
-                const batch = writeBatch(db);
-                ids.forEach(id => {
-                    const t = tasks.find(item => item.id === id);
-                    if (t) {
-                        const newDoc = doc(collection(db, "tasks"));
-                        batch.set(newDoc, { 
-                            uid: t.uid,
-                            title: t.title + " (コピー)", 
-                            priority: t.priority,
-                            category: t.category,
-                            date: t.date,
-                            status: t.status,
-                            memo: t.memo || "",
-                            createdAt: new Date() 
-                        });
-                    }
-                });
-                await batch.commit();
-                document.querySelectorAll('.t-chk:checked').forEach(c => c.checked = false);
-                upBulkUI();
-                alert(`${ids.length}件のタスクを複製しました`);
-            } catch (e) {
-                alert('複製に失敗しました');
-            }
+            const ids = Array.from(document.querySelectorAll('.t-chk:checked')).map(el => el.value);
+            const batch = writeBatch(db);
+            ids.forEach(id => batch.update(doc(db, "tasks", id), { priority: pri, updatedAt: new Date() }));
+            try { await batch.commit(); e.target.value = ""; upBulkUI(); } catch (e) { alert('更新に失敗しました'); }
         };
 
-        // プロフィール変更
-        const setupEditProfile = (type, title, inputType = 'text') => {
-            document.getElementById('edit-h').textContent = title;
-            const editInput = document.getElementById('edit-v');
-            editInput.value = "";
-            editInput.type = inputType;
-            editInput.placeholder = type === 'password' ? '新しいパスワード' : '新しい値を入力';
+        // --- プロフィール・設定変更 ---
+        let currentEditField = '';
+        window.openEditP = (field, label) => {
+            currentEditField = field;
+            document.getElementById('edit-h').textContent = `${label}の変更`;
+            document.getElementById('edit-v').value = '';
+            document.getElementById('edit-v').type = field === 'password' ? 'password' : 'text';
             openM('edit-profile-modal');
-            
-            document.getElementById('edit-exec-btn').onclick = async () => {
-                const v = editInput.value.trim();
-                if (!v) return alert("入力してください");
-                
-                try {
-                    if (type === 'email') { 
-                        await updateEmail(userNow, v); 
-                        await updateDoc(doc(db, "users", userNow.uid), { email: v }); 
-                    }
-                    else if (type === 'password') {
-                        if (v.length < 6) return alert('パスワードは6文字以上で入力してください');
-                        await updatePassword(userNow, v);
-                    }
-                    else if (type === 'name') { 
-                        await updateProfile(userNow, { displayName: v }); 
-                        await updateDoc(doc(db, "users", userNow.uid), { displayName: v }); 
-                    }
-                    else if (type === 'phone') {
-                        await updateDoc(doc(db, "users", userNow.uid), { phone: v });
-                    }
-                    alert("更新しました"); 
-                    closeAll();
-                    if (type === 'name') {
-                        document.getElementById('user-display').textContent = v;
-                    }
-                } catch(e) { 
-                    if (e.code === 'auth/requires-recent-login') {
-                        alert('セキュリティのため、再ログインが必要です。一度ログアウトして再度ログインしてください。');
-                    } else {
-                        alert("更新に失敗しました: " + e.message); 
-                    }
-                }
-            };
         };
-        document.getElementById('btn-edit-email').onclick = () => setupEditProfile('email', 'メールアドレス変更', 'email');
-        document.getElementById('btn-edit-phone').onclick = () => setupEditProfile('phone', '電話番号変更', 'tel');
-        document.getElementById('btn-edit-password').onclick = () => setupEditProfile('password', 'パスワード変更', 'password');
-        document.getElementById('btn-edit-name').onclick = () => setupEditProfile('name', 'ユーザー名の変更', 'text');
 
-        // Google連携
-        document.getElementById('btn-link-google').onclick = async () => {
-            const provider = new GoogleAuthProvider();
+        document.getElementById('edit-exec-btn').onclick = async () => {
+            const v = document.getElementById('edit-v').value.trim();
+            if (!v) return alert('値を入力してください');
+            try {
+                if (currentEditField === 'displayName') {
+                    await updateProfile(auth.currentUser, { displayName: v });
+                    await updateDoc(doc(db, "users", userNow.uid), { displayName: v });
+                    document.getElementById('user-display').textContent = v;
+                } else if (currentEditField === 'email') {
+                    await updateEmail(auth.currentUser, v);
+                    await updateDoc(doc(db, "users", userNow.uid), { email: v });
+                } else if (currentEditField === 'password') {
+                    await updatePassword(auth.currentUser, v);
+                }
+                alert('更新しました');
+                closeAll();
+            } catch (e) { alert('更新に失敗しました: ' + e.message); }
+        };
+
+        document.getElementById('google-link-btn').onclick = async () => {
             const isLinked = auth.currentUser.providerData.some(p => p.providerId === 'google.com');
-            
-            if (isLinked) {
-                if (auth.currentUser.providerData.length <= 1) {
-                    return alert('他のログイン方法がないため、Google連携を解除できません。');
+            try {
+                if (isLinked) {
+                    await unlink(auth.currentUser, 'google.com');
+                    alert('Google連携を解除しました');
+                } else {
+                    await linkWithPopup(auth.currentUser, new GoogleAuthProvider());
+                    alert('Google連携を完了しました');
                 }
-                if (confirm("Googleアカウントとの連携を解除しますか？")) {
-                    try { 
-                        await unlink(auth.currentUser, 'google.com'); 
-                        alert("連携を解除しました"); 
-                        document.getElementById('google-link-text').textContent = 'Googleアカウント連携';
-                    }
-                    catch (e) { alert("解除に失敗しました: " + e.message); }
-                }
-            } else {
-                try { 
-                    await linkWithPopup(auth.currentUser, provider); 
-                    alert("Googleアカウントと連携しました"); 
-                    document.getElementById('google-link-text').textContent = 'Google連携を解除';
-                }
-                catch (e) { 
-                    if (e.code === 'auth/credential-already-in-use') {
-                        alert('このGoogleアカウントは既に別のアカウントに連携されています');
-                    } else {
-                        alert("連携に失敗しました: " + e.message); 
-                    }
-                }
-            }
+                location.reload();
+            } catch (e) { alert('連携操作に失敗しました: ' + e.message); }
         };
 
-        document.getElementById('btn-logout').onclick = async () => {
-            if (confirm('ログアウトしますか？')) {
-                await signOut(auth);
-            }
-        };
-        
-        // 検索・フィルタのイベント
-        document.getElementById('q-search').oninput = refreshUI;
-        document.getElementById('f-st').onchange = refreshUI;
-        document.getElementById('f-pri').onchange = refreshUI;
-        document.getElementById('f-cat').onchange = refreshUI;
-        document.getElementById('f-sort').onchange = refreshUI;
+        document.getElementById('logout-btn').onclick = () => signOut(auth);
 
-        // キーボードショートカット
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeAll();
-            if (e.key === 'n' && e.ctrlKey) {
-                e.preventDefault();
-                document.getElementById('btn-open-new').click();
-            }
-        });
     </script>
 </body>
 </html>
